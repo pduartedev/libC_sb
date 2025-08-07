@@ -67,7 +67,6 @@
 
 # ______________________________________________________________________________________________________
 .data
-    # TODO: VERIFICAR
     # CONSTANTES DE PONTO FLUTUANTE PARA SSE/AVX
     .align 16
     .LC_float_abs_mask:     .long 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF
@@ -78,41 +77,55 @@
     .LC_one_double:         .double 1.0
     .LC_neg_one_float:      .float -1.0
     .LC_neg_one_double:     .double -1.0
+
+    # |---------------------------------------------|
+    # |         TESTES COM A FUNÇÃO PRINTF          |
+    # |---------------------------------------------|
     
-    # STRINGS DE FORMATO E MENSAGENS
-    patrick_info_text: .string "PATRICK DUARTE PIMENTA - SOFTWARE BÁSICO - 2025\n"
-    implementation_complete: .string "Implementação completa da libC_SB em Assembly x86-64\n"
+    printf_test_header: .string "=== TESTES DA FUNÇÃO PRINTF ===\n"
+    printf_test_separator: .string "--------------------------------\n"
     
-    # DADOS PESSOAIS PARA TESTE
-    nome_exemplo: .string "Patrick"
-    patrick_initial: .byte 'P'
-    patrick_age: .long 25
-    patrick_float: .long 31415                          # representa 314.15
-    patrick_double: .quad 2718281828                     # representa 2718.281828
+    # Dados para teste de diferentes tipos
+    test_char_value: .byte 'P'                          # Caractere para teste %c
+    test_short_value: .short 25                         # Short para teste %hd
+    test_int_value: .long 1234                          # Int para teste %d
+    test_long_value: .quad 9876543210                   # Long para teste %ld
+    test_float_value: .float 3.14159                    # Float para teste %f
+    test_double_value: .double 2.718281828              # Double para teste %lf
     
-    # FORMATOS DE IMPRESSÃO
-    name_format: .string "Nome: "
-    age_format: .string "Idade: "
-    initial_format: .string "Inicial: "
-    float_format: .string "Float: "
-    double_format: .string "Double: "
+    # Strings de formato para cada tipo
+    format_char: .string "Char: %c\n"
+    format_short: .string "Short: %hd\n"
+    format_int: .string "Int: %d\n"
+    format_long: .string "Long: %ld\n"
+    format_float: .string "Float: %f\n"
+    format_double: .string "Double: %lf\n"
     
-    # DADOS PRÉ-FORMATADOS PARA DEMONSTRAÇÃO
-    age_str: .string "25"
-    initial_str: .string "P"
-    float_str: .string "314.15"
-    double_str: .string "2718.281828"
-    newline_str: .string "\n"
+    # Formato combinado para teste completo
+    format_all_types: .string "Teste completo:\nChar: %c\nShort: %hd\nInt: %d\nLong: %ld\nFloat: %f\nDouble: %lf\n"
     
-    # INFORMAÇÕES DETALHADAS PARA ARQUIVO
-    detailed_info: .string "Nome: Patrick\nIdade: 25\nInicial: P\nFloat: 314.15\nDouble: 2718.281828\n"
+    # Mensagens de teste
+
+    # |---------------------------------------------|
+    # |         TESTES COM A FUNÇÃO SCANF           |
+    # |---------------------------------------------|
+
+    # |---------------------------------------------|
+    # |         TESTES COM A FUNÇÃO FOPEN           |
+    # |---------------------------------------------|
+
+    # |---------------------------------------------|
+    # |         TESTES COM A FUNÇÃO FCLOSE          |
+    # |---------------------------------------------|
+
+    # |---------------------------------------------|
+    # |         TESTES COM A FUNÇÃO FPRINTF         |
+    # |---------------------------------------------|
+
+    # |---------------------------------------------|
+    # |         TESTES COM A FUNÇÃO FSCANF          |
+    # |---------------------------------------------|
     
-    # MENSAGENS DE TESTE DE ARQUIVO
-    file_success_test: .string "Arquivo criado com sucesso!\n"
-    file_error_test: .string "Erro ao criar arquivo!\n"
-    
-    # NOME DO ARQUIVO DE TESTE
-    test_filename: .string "teste_libC_SB.txt"
 # ______________________________________________________________________________________________________
 
 # ______________________________________________________________________________________________________
@@ -121,10 +134,10 @@
     .globl _main
     .globl _printf                                          # Printf
     .globl _scanf                                           # Scanf   
-    .globl _fprintf                                         # Fprintf para arquivos
-    .globl _fscanf                                          # Fscanf para arquivos
     .globl _fopen                                           # Abrir arquivos
     .globl _fclose                                          # Fechar arquivos
+    .globl _fprintf                                         # Fprintf para arquivos
+    .globl _fscanf                                          # Fscanf para arquivos
 
     # FUNÇÕES DE CONVERSÃO STRING-TO-TYPE
     .globl _str_to_char                                     # String para char
@@ -144,6 +157,7 @@
     
     # FUNÇÕES AUXILIARES
     .globl _get_next_printf_arg                             # Obtém o próximo argumento para printf
+    .globl _test_printf_all_types                           # Função de teste para todos os tipos
 
     # FUNÇÃO PRINCIPAL
     .globl _main
@@ -368,9 +382,6 @@ _printf:
         popq %r12
         popq %rbp
         ret
-
-        
-
 
 # ######################################################################################################
 # SCANF - Implementação de scanf com suporte aos tipos: %d, %s, %c, %f, %lf  
@@ -1020,11 +1031,82 @@ _get_next_printf_arg:
         ret
 
 # ######################################################################################################
+# FUNÇÃO DE TESTE PARA PRINTF - TODOS OS TIPOS
+# ######################################################################################################
+
+_test_printf_all_types:
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Imprime cabeçalho dos testes
+    leaq printf_test_header(%rip), %rdi
+    call _printf
+    
+    # Teste 1: Char (%c)
+    leaq format_char(%rip), %rdi
+    movzbl test_char_value(%rip), %esi                  # Carrega char como segundo argumento
+    call _printf
+    
+    # Teste 2: Short (%hd)  
+    leaq format_short(%rip), %rdi
+    movswl test_short_value(%rip), %esi                 # Carrega short como segundo argumento
+    call _printf
+    
+    # Teste 3: Int (%d)
+    leaq format_int(%rip), %rdi
+    movl test_int_value(%rip), %esi                     # Carrega int como segundo argumento
+    call _printf
+    
+    # Teste 4: Long (%ld)
+    leaq format_long(%rip), %rdi
+    movq test_long_value(%rip), %rsi                    # Carrega long como segundo argumento
+    call _printf
+    
+    # Teste 5: Float (%f)
+    leaq format_float(%rip), %rdi
+    movss test_float_value(%rip), %xmm0                 # Carrega float em XMM0
+    call _printf
+    
+    # Teste 6: Double (%lf)
+    leaq format_double(%rip), %rdi
+    movsd test_double_value(%rip), %xmm0                # Carrega double em XMM0
+    call _printf
+    
+    /*
+    # Imprime separador
+    leaq printf_test_separator(%rip), %rdi
+    call _printf
+    
+    # Teste combinado - todos os tipos em uma única chamada
+    leaq format_all_types(%rip), %rdi                   # String de formato
+    movzbl test_char_value(%rip), %esi                  # Arg 1: char
+    movswl test_short_value(%rip), %edx                 # Arg 2: short  
+    movl test_int_value(%rip), %ecx                     # Arg 3: int
+    movq test_long_value(%rip), %r8                     # Arg 4: long
+    movss test_float_value(%rip), %xmm0                 # Arg 5: float (em XMM0)
+    movsd test_double_value(%rip), %xmm1                # Arg 6: double (em XMM1)
+    call _printf
+    */
+    
+    popq %rbp
+    ret
+
+# ######################################################################################################
 # FUNÇÃO PRINCIPAL - MAIN
 # ######################################################################################################
 
 _main:
-    # Esta função pode ser usada para testar as implementações
-    # Por enquanto, apenas retorna 0 (sucesso)
+    # Função principal para testar as implementações
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # |---------------------------------------------|
+    # |         TESTES COM A FUNÇÃO PRINTF          |
+    # |---------------------------------------------|
+    # Chama a função de teste do printf
+    call _test_printf_all_types
+    
+    # Retorna 0 (sucesso)
     movq $0, %rax
+    popq %rbp
     ret
