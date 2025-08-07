@@ -81,19 +81,24 @@
     # |---------------------------------------------|
     # |         TESTES COM A FUNÇÃO PRINTF          |
     # |---------------------------------------------|
+
+    # Valores mínimos para cada tipo signed
+    test_char_min: .byte -128                           # Char mínimo: -128
+    test_short_min: .short -32768                       # Short mínimo: -32768
+    test_int_min: .long -2147483648                     # Int mínimo: -2147483648
+    test_long_min: .quad -9223372036854775808           # Long mínimo: -9223372036854775808
+    test_float_min: .float -3.4028235e+38               # Float mínimo: -3.4028235e+38
+    test_double_min: .double -1.7976931348623157e+308   # Double mínimo: -1.7976931348623157e+308
     
-    printf_test_header: .string "=== TESTES DA FUNÇÃO PRINTF ===\n"
-    printf_test_separator: .string "--------------------------------\n"
+    # Valores máximos para cada tipo signed  
+    test_char_max: .byte 127                            # Char máximo: 127
+    test_short_max: .short 32767                        # Short máximo: 32767
+    test_int_max: .long 2147483647                      # Int máximo: 2147483647
+    test_long_max: .quad 9223372036854775807            # Long máximo: 9223372036854775807
+    test_float_max: .float 3.4028235e+38                # Float máximo: 3.4028235e+38
+    test_double_max: .double 1.7976931348623157e+308    # Double máximo: 1.7976931348623157e+308
     
-    # Dados para teste de diferentes tipos
-    test_char_value: .byte 'P'                          # Caractere para teste %c
-    test_short_value: .short 25                         # Short para teste %hd
-    test_int_value: .long 1234                          # Int para teste %d
-    test_long_value: .quad 9876543210                   # Long para teste %ld
-    test_float_value: .float 3.14159                    # Float para teste %f
-    test_double_value: .double 2.718281828              # Double para teste %lf
-    
-    # Strings de formato para cada tipo
+    # Strings de formato para cada tipo (valores positivos)
     format_char: .string "Char: %c\n"
     format_short: .string "Short: %hd\n"
     format_int: .string "Int: %d\n"
@@ -101,8 +106,38 @@
     format_float: .string "Float: %f\n"
     format_double: .string "Double: %lf\n"
     
-    # Formato combinado para teste completo
-    format_all_types: .string "Teste completo:\nChar: %c\nShort: %hd\nInt: %d\nLong: %ld\nFloat: %f\nDouble: %lf\n"
+    # Strings de formato para cada tipo (valores negativos)
+    format_char_neg: .string "Char (neg): %c\n"
+    format_short_neg: .string "Short (neg): %hd\n"
+    format_int_neg: .string "Int (neg): %d\n"
+    format_long_neg: .string "Long (neg): %ld\n"
+    format_float_neg: .string "Float (neg): %f\n"
+    format_double_neg: .string "Double (neg): %lf\n"
+    
+    # |---------------------------------------------|
+    # |      STRINGS PARA VALORES MIN/MAX           |
+    # |---------------------------------------------|
+    
+    # Headers para testes de valores extremos
+    min_max_header: .string "\n=== TESTE DA FUNÇAO PRINTF ===\n"
+    min_header: .string "\n--- VALORES MÍNIMOS ---\n"
+    max_header: .string "\n--- VALORES MÁXIMOS ---\n"
+    
+    # Strings de formato para valores mínimos
+    format_char_min: .string "Char MIN: %c (valor: %d)\n"
+    format_short_min: .string "Short MIN: %hd\n"
+    format_int_min: .string "Int MIN: %d\n"
+    format_long_min: .string "Long MIN: %ld\n"
+    format_float_min: .string "Float MIN: %f\n"
+    format_double_min: .string "Double MIN: %lf\n"
+    
+    # Strings de formato para valores máximos
+    format_char_max: .string "Char MAX: %c (valor: %d)\n"
+    format_short_max: .string "Short MAX: %hd\n"
+    format_int_max: .string "Int MAX: %d\n"
+    format_long_max: .string "Long MAX: %ld\n"
+    format_float_max: .string "Float MAX: %f\n"
+    format_double_max: .string "Double MAX: %lf\n"
     
     # Mensagens de teste
 
@@ -158,13 +193,17 @@
     # FUNÇÕES AUXILIARES
     .globl _get_next_printf_arg                             # Obtém o próximo argumento para printf
     .globl _test_printf_all_types                           # Função de teste para todos os tipos
+    .globl _test_min_max_values                             # Função de teste para valores mínimos e máximos
+
+    # FUNÇÕES DE TESTES
+    .globl _test_printf_all_types                           # Test todos os valroes da função printf
 
     # FUNÇÃO PRINCIPAL
     .globl _main
 # ______________________________________________________________________________________________________
 
 # ######################################################################################################
-# PRINTF - Implementação de printf com suporte aos tipos: %d, %s, %c, %f, %lf
+# PRINTF - Implementação de printf com suporte aos tipos char, short, int ,long int, float e double
 # ######################################################################################################
 
 _printf:
@@ -195,7 +234,7 @@ _printf:
 
     # Inicialização das variáveis
     movl $0, -52(%rbp)                                  # contador de caracteres
-    movl $0, -56(%rbp)                                  # arg_index
+    movl $0, -56(%rbp)                                  # arg_index (inicializa em 0)
     leaq output_buffer(%rip), %r12                      # ponteiro para o buffer
     movq %r12, %r13                                     # inicio do buffer
 
@@ -211,7 +250,7 @@ _printf:
         # Caractere normal - copia para o buffer
         movb %bl, (%r12)
         incq %r12
-        incq -52(%rbp)                                  # incrementa contador de caracteres
+        incq -52(%rbp)                                  # incrementa o contador de caracteres
         incq -8(%rbp)                                   # avança o ponteiro da string de formato
         jmp printf_main_loop
 
@@ -327,8 +366,10 @@ _printf:
 
     # Printa float (%f)
     printf_float:
-        call _get_next_printf_arg
-        movd %eax, %xmm0                                # mover valor para XMM0 como float
+        # Para float, não usar _get_next_printf_arg pois float vem em XMM
+        # Em vez disso, o valor já deve estar em XMM0 quando chamado
+        call _get_next_printf_arg                       # obtém o valor como inteiro (representação binária)
+        movd %eax, %xmm0                                # move para XMM0 como float
         movq %r12, %rdi                                 # posição do buffer
         
         # Chama a função que espera valor em XMM0
@@ -342,8 +383,10 @@ _printf:
 
     # Printa double (%lf)
     printf_double:
-        call _get_next_printf_arg
-        movq %rax, %xmm0                                # mover valor para XMM0 como double
+        # Para double, não usar _get_next_printf_arg pois double também vem em XMM
+        # Em vez disso, o valor já deve estar em XMM0 quando chamado
+        call _get_next_printf_arg                       # obtém o valor como inteiro (representação binária)
+        movq %rax, %xmm0                                # move para XMM0 como double
         movq %r12, %rdi                                 # posição do buffer
         
         # Chama a função que espera valor em XMM0
@@ -366,14 +409,14 @@ _printf:
         # Escreve o buffer para stdout
         movq $SYS_WRITE, %rax
         movq $STDOUT_FD, %rdi
-        movq %r13, %rsi                                 # buffer start
-        movl -52(%rbp), %edx                            # char count
+        movq %r13, %rsi                                 # início do buffer
+        movl -52(%rbp), %edx                            # contador de caracteres
         syscall
         
         # Retorna o número de caracteres escritos
         movl -52(%rbp), %eax
         
-        # Cleanup
+        # Restaura os registradores e a stack
         addq $64, %rsp
         popq %rbx
         popq %r15
@@ -512,21 +555,23 @@ _short_to_str:
     # Preserva registradores que serão utilizados
     pushq %r12
     pushq %r13
+    pushq %r14
+    pushq %r15
 
     # Preparação dos dados
     movswq %di, %r12                                    # extende short (16-bit) para long (64-bit)
     movq %rsi, %r13                                     # salva o ponteiro do buffer de destino
-    movq $0, %rcx                                       # inicializa o contador de caracteres
+    movq $0, %r15                                       # inicializa o contador de caracteres
 
     # Verifica se o número é negativo
     testq %r12, %r12
     jns short_positive                                  # pula se não for negativo
 
     # Tratamento de números negativos
-    movb $'-', (%r13)                                   # adiciona sinal de menos no buffer
-    incq %r13                                           # avança ponteiro do buffer
+    movb $'-', (%r13)                                   # adiciona o sinal de menos no buffer
+    incq %r13                                           # avança o ponteiro do buffer
+    incq %r15                                           # conta o caractere do sinal
     negq %r12                                           # converte para positivo (módulo)
-    incq %rcx                                           # conta o caractere do sinal
 
     short_positive:
         # Caso especial: número zero
@@ -536,62 +581,59 @@ _short_to_str:
         # Se for zero, simplesmente adiciona '0' e termina
         movb $'0', (%r13)
         movb $0, 1(%r13)                                # terminador nulo
-        incq %rcx                                       # conta o dígito '0'
-
-        movq %rcx, %rax                                 # retorna a quantidade de caracteres
+        incq %r15                                       # conta o dígito '0'
+        movq %r15, %rax                                 # retorna a quantidade de caracteres
         jmp short_done
 
     short_convert_digits:
-        movq %r12, %rax                                 # copia valor para divisão
-        movq %r13, %r8                                  # salva posição inicial para dígitos
+        # Primeira passada: conta quantos dígitos tem o número
+        movq %r12, %rax                                 # copia o valor para contagem
+        movq $0, %r14                                   # contador de dígitos
         
-        # Primeiro passo: contar quantos dígitos o número possui
+    short_count_digits:
         movq $0, %rdx                                   # limpa rdx
-
-        short_count_loop:
-        movq $10, %r9                                   # divisor = 10
-        movq $0, %rdx                                   # limpa rdx
-        divq %r9                                        # divide por 10: rax = quociente, rdx = resto
-        incq %rcx                                       # incrementa contador de dígitos
+        movq $10, %rcx                                  # divisor = 10
+        divq %rcx                                       # rax = quociente, rdx = resto
+        incq %r14                                       # incrementa o contador de dígitos
         testq %rax, %rax                                # verifica se ainda há dígitos
-        jnz short_count_loop                            # continua se rax != 0
+        jnz short_count_digits                          # continua se rax != 0
         
-        # Segundo passo: converter dígitos de trás para frente
-        movq %r12, %rax                                 # restaura valor original
-        movq %rcx, %r9                                  # salva total de caracteres
-        subq %r13, %r8                                  # calcula offset do sinal
-        addq %r8, %rcx                                  # total incluindo sinal
-        movq %r13, %r8                                  # restaura posição do buffer
-        addq %rcx, %r8                                  # aponta para o final
-        subq %r13, %r8                                  # calcula a quantidade de dígitos
-        addq %r13, %r8                                  # posição final
-        decq %r8                                        # aponta para a posição do último dígito
+        # Agora sabemos quantos dígitos temos em %r14
+        # Posiciona ponteiro no final dos dígitos para escrever de trás para frente
+        movq %r13, %rcx                                 # ponteiro atual do buffer
+        addq %r14, %rcx                                 # aponta para depois do último dígito
+        decq %rcx                                       # aponta para o último dígito
         
-    short_digit_loop:
-        movq $10, %r9                                   # divisor = 10
-        movq $0, %rdx                                   # limpa remainder
-        divq %r9                                        # rax = quociente, rdx = dígito atual
+        # Segunda passada: converte os dígitos de trás para frente
+        movq %r12, %rax                                 # restaura o valor original
         
+    short_write_digits:
+        movq $0, %rdx                                   # limpa rdx
+        movq $10, %r8                                   # divisor = 10
+        divq %r8                                        # rax = quociente, rdx = resto (dígito)
+        
+        # Converte dígito para ASCII e escreve no buffer
         addb $'0', %dl                                  # converte o dígito para ASCII
-        movb %dl, (%r8)                                 # armazena o dígito no buffer
-        decq %r8                                        # move para a posição anterior
+        movb %dl, (%rcx)                                # escreve o dígito na posição
+        decq %rcx                                       # move para a posição anterior
         
-        testq %rax, %rax                                # verifica se ainda há dígitos
-        jnz short_digit_loop                            # continua se rax != 0
+        # Continua se ainda há mais dígitos
+        testq %rax, %rax
+        jnz short_write_digits
         
-        # Adiciona terminador nulo no final da string
-        addq %rcx, %r13                                 # move para o final da string
-        subq %r13, %rsi                                 # calcula a diferença
-        addq %rsi, %rcx                                 # ajusta o contador
-        movq %r13, %r8                                  # copia para a posição
-        subq %rsi, %r8                                  # calcula o offset
-        addq %r8, %rsi                                  # posição final
-        movb $0, (%rsi)                                 # adiciona o terminador nulo
+        # Atualiza ponteiro do buffer e contador
+        addq %r14, %r13                                 # avança o ponteiro pelos dígitos escritos
+        addq %r14, %r15                                 # adiciona os dígitos ao contador total
         
-        movq %rcx, %rax                                 # retorna número de caracteres convertidos
+        # Adiciona terminador nulo
+        movb $0, (%r13)                                 # adiciona o terminador nulo
+        
+        movq %r15, %rax                                 # retorna o número de caracteres convertidos
         
     short_done:
         # Restaura registradores preservados
+        popq %r15
+        popq %r14
         popq %r13
         popq %r12
         popq %rbp
@@ -607,11 +649,13 @@ _int_to_str:
     # Preserva registradores que serão utilizados
     pushq %r12
     pushq %r13
+    pushq %r14
+    pushq %r15
 
     # Preparação dos dados
     movslq %edi, %r12                                   # extende int (32-bit) para long (64-bit)
     movq %rsi, %r13                                     # salva o ponteiro do buffer de destino
-    movq $0, %rcx                                       # inicializa o contador de caracteres
+    movq $0, %r15                                       # inicializa o contador de caracteres
 
     # Verifica se o número é negativo
     testq %r12, %r12
@@ -620,8 +664,8 @@ _int_to_str:
     # Tratamento de números negativos
     movb $'-', (%r13)                                   # adiciona sinal de menos no buffer
     incq %r13                                           # avança o ponteiro do buffer
+    incq %r15                                           # conta o caractere do sinal
     negq %r12                                           # converte para positivo (módulo)
-    incq %rcx                                           # conta o caractere do sinal
 
     int_positive:
         # Caso especial: número zero
@@ -631,62 +675,58 @@ _int_to_str:
         # Se for zero, simplesmente adiciona '0' e termina
         movb $'0', (%r13)
         movb $0, 1(%r13)                                # terminador nulo
-        incq %rcx                                       # conta o dígito '0'
-
-        movq %rcx, %rax                                 # retorna a quantidade de caracteres
+        incq %r15                                       # conta o dígito '0'
+        movq %r15, %rax                                 # retorna a quantidade de caracteres
         jmp int_done
 
     int_convert_digits:
-        movq %r12, %rax                                 # copia o valor para divisão
-        movq %r13, %r8                                  # salva a posição inicial para dígitos
+        # Primeira passada: conta quantos dígitos tem o número
+        movq %r12, %rax                                 # copia o valor para contagem
+        movq $0, %r14                                   # contador de dígitos
         
-        # Primeiro passo: contar quantos dígitos o número possui
+    int_count_digits:
         movq $0, %rdx                                   # limpa rdx
-
-        int_count_loop:
-        movq $10, %r9                                   # divisor = 10
-        movq $0, %rdx                                   # limpa rdx
-        divq %r9                                        # divide por 10: rax = quociente, rdx = resto
-        incq %rcx                                       # incrementa contador de dígitos
+        movq $10, %rcx                                  # divisor = 10
+        divq %rcx                                       # rax = quociente, rdx = resto
+        incq %r14                                       # incrementa contador de dígitos
         testq %rax, %rax                                # verifica se ainda há dígitos
-        jnz int_count_loop                              # continua se rax != 0
+        jnz int_count_digits                            # continua se rax != 0
         
-        # Segundo passo: converter dígitos de trás para frente
-        movq %r12, %rax                                 # restaura o valor original
-        movq %rcx, %r9                                  # salva o total de caracteres
-        subq %r13, %r8                                  # calcula o offset do sinal
-        addq %r8, %rcx                                  # total incluindo o sinal
-        movq %r13, %r8                                  # restaura a posição do buffer
-        addq %rcx, %r8                                  # aponta para o final
-        subq %r13, %r8                                  # calcula a quantidade de dígitos
-        addq %r13, %r8                                  # posição final
-        decq %r8                                        # aponta para a posição do último dígito
+        # Agora sabemos quantos dígitos temos em %r14
+        # Posiciona ponteiro no final dos dígitos para escrever de trás para frente
+        movq %r13, %rcx                                 # ponteiro atual do buffer
+        addq %r14, %rcx                                 # aponta para depois do último dígito
+        decq %rcx                                       # aponta para o último dígito
         
-    int_digit_loop:
-        movq $10, %r9                                   # divisor = 10
+        # Segunda passada: converte os dígitos de trás para frente
+        movq %r12, %rax                                 # restaura valor original
+        
+    int_write_digits:
         movq $0, %rdx                                   # limpa rdx
-        divq %r9                                        # rax = quociente, rdx = dígito atual
+        movq $10, %r8                                   # divisor = 10
+        divq %r8                                        # rax = quociente, rdx = resto (dígito)
         
+        # Converte dígito para ASCII e escreve no buffer
         addb $'0', %dl                                  # converte o dígito para ASCII
-        movb %dl, (%r8)                                 # armazena o dígito no buffer
-        decq %r8                                        # move para a posição anterior
+        movb %dl, (%rcx)                                # escreve o dígito na posição
+        decq %rcx                                       # move para a posição anterior
         
-        testq %rax, %rax                                # verifica se ainda há dígitos
-        jnz int_digit_loop                              # continua se rax != 0
+        # Continua se ainda há mais dígitos
+        testq %rax, %rax
+        jnz int_write_digits
         
-        # Adiciona terminador nulo no final da string
-        addq %rcx, %r13                                 # move para o final da string
-        subq %r13, %rsi                                 # calcula a diferença
-        addq %rsi, %rcx                                 # ajusta o contador
-        movq %r13, %r8                                  # copia para a posição
-        subq %rsi, %r8                                  # calcula o offset
-        addq %r8, %rsi                                  # posição final
-        movb $0, (%rsi)                                 # adiciona o terminador nulo
+        # Atualiza ponteiro do buffer e contador
+        addq %r14, %r13                                 # avança o ponteiro pelos dígitos escritos
+        addq %r14, %r15                                 # adiciona os dígitos ao contador total
         
-        movq %rcx, %rax                                 # retorna número de caracteres convertidos
+        movb $0, (%r13)                                 # adiciona o terminador nulo
+        
+        movq %r15, %rax                                 # retorna  o número de caracteres convertidos
         
     int_done:
         # Restaura registradores preservados
+        popq %r15
+        popq %r14
         popq %r13
         popq %r12
         popq %rbp
@@ -695,28 +735,30 @@ _int_to_str:
 # Converte long para string
 _long_to_str:
     # Entrada: %rdi = valor long, %rsi = buffer de destino
-    # Saída: %rax = ponteiro para string resultante
+    # Saída: %rax = número de caracteres convertidos
     pushq %rbp
     movq %rsp, %rbp
 
     # Preserva os registradores que serão utilizados
     pushq %r12
     pushq %r13
+    pushq %r14
+    pushq %r15
 
     # Preparação dos dados
     movq %rdi, %r12                                     # salva o valor long (64-bit)
     movq %rsi, %r13                                     # salva o ponteiro do buffer de destino
-    movq $0, %rcx                                       # inicializa o contador de caracteres
+    movq $0, %r15                                       # inicializa o contador de caracteres
 
     # Verifica se o número é negativo
     testq %r12, %r12
     jns long_positive                                   # pula se não for negativo
 
     # Tratamento de números negativos
-    movb $'-', (%r13)                                   # adiciona sinal de menos no buffer
+    movb $'-', (%r13)                                   # adiciona o sinal de menos no buffer
     incq %r13                                           # avança o ponteiro do buffer
+    incq %r15                                           # conta o caractere do sinal
     negq %r12                                           # converte para positivo (módulo)
-    incq %rcx                                           # conta o caractere do sinal
 
     long_positive:
         # Caso especial: número zero
@@ -726,62 +768,59 @@ _long_to_str:
         # Se for zero, simplesmente adiciona '0' e termina
         movb $'0', (%r13)
         movb $0, 1(%r13)                                # terminador nulo
-        incq %rcx                                       # conta o dígito '0'
-
-        movq %rcx, %rax                                 # retorna a quantidade de caracteres
+        incq %r15                                       # conta o dígito '0'
+        movq %r15, %rax                                 # retorna a quantidade de caracteres
         jmp long_done
 
     long_convert_digits:
-        movq %r12, %rax                                 # copia o valor para divisão
-        movq %r13, %r8                                  # salva a posição inicial para dígitos
+        # Primeira passada: conta quantos dígitos tem o número
+        movq %r12, %rax                                 # copia o valor para contagem
+        movq $0, %r14                                   # contador de dígitos
         
-        # Primeiro passo: contar quantos dígitos o número possui
+    long_count_digits:
         movq $0, %rdx                                   # limpa rdx
-
-        long_count_loop:
-        movq $10, %r9                                   # divisor = 10
-        movq $0, %rdx                                   # limpa rdx
-        divq %r9                                        # divide por 10: rax = quociente, rdx = resto
-        incq %rcx                                       # incrementa o contador de dígitos
+        movq $10, %rcx                                  # divisor = 10
+        divq %rcx                                       # rax = quociente, rdx = resto
+        incq %r14                                       # incrementa contador de dígitos
         testq %rax, %rax                                # verifica se ainda há dígitos
-        jnz long_count_loop                             # continua se rax != 0
+        jnz long_count_digits                           # continua se rax != 0
         
-        # Segundo passo: converter dígitos de trás para frente
+        # Agora sabemos quantos dígitos temos em %r14
+        # Posiciona ponteiro no final dos dígitos para escrever de trás para frente
+        movq %r13, %rcx                                 # ponteiro atual do buffer
+        addq %r14, %rcx                                 # aponta para depois do último dígito
+        decq %rcx                                       # aponta para o último dígito
+        
+        # Segunda passada: converte os dígitos de trás para frente
         movq %r12, %rax                                 # restaura o valor original
-        movq %rcx, %r9                                  # salva o total de caracteres
-        subq %r13, %r8                                  # calcula o offset do sinal
-        addq %r8, %rcx                                  # total incluindo o sinal
-        movq %r13, %r8                                  # restaura a posição do buffer
-        addq %rcx, %r8                                  # aponta para o final
-        subq %r13, %r8                                  # calcula a quantidade de dígitos
-        addq %r13, %r8                                  # posição final
-        decq %r8                                        # aponta para a posição do último dígito
         
-    long_digit_loop:
-        movq $10, %r9                                   # divisor = 10
+    long_write_digits:
         movq $0, %rdx                                   # limpa rdx
-        divq %r9                                        # rax = quociente, rdx = dígito atual
+        movq $10, %r8                                   # divisor = 10
+        divq %r8                                        # rax = quociente, rdx = resto (dígito)
         
+        # Converte dígito para ASCII e escreve no buffer
         addb $'0', %dl                                  # converte o dígito para ASCII
-        movb %dl, (%r8)                                 # armazena o dígito no buffer
-        decq %r8                                        # move para a posição anterior
+        movb %dl, (%rcx)                                # escreve o dígito na posição
+        decq %rcx                                       # move para a posição anterior
         
-        testq %rax, %rax                                # verifica se ainda há dígitos
-        jnz long_digit_loop                             # continua se rax != 0
+        # Continua se ainda há mais dígitos
+        testq %rax, %rax
+        jnz long_write_digits
         
-        # Adiciona terminador nulo no final da string
-        addq %rcx, %r13                                 # move para o final da string
-        subq %r13, %rsi                                 # calcula a diferença
-        addq %rsi, %rcx                                 # ajusta o contador
-        movq %r13, %r8                                  # copia para a posição
-        subq %rsi, %r8                                  # calcula o offset
-        addq %r8, %rsi                                  # posição final
-        movb $0, (%rsi)                                 # adiciona o terminador nulo
+        # Atualiza ponteiro do buffer e contador
+        addq %r14, %r13                                 # avança o ponteiro pelos dígitos escritos
+        addq %r14, %r15                                 # adiciona dígitos ao contador total
         
-        movq %rcx, %rax                                 # retorna número de caracteres convertidos
-        
+        # Adiciona terminador nulo
+        movb $0, (%r13)                                 # adiciona o terminador nulo
+
+        movq %r15, %rax                                 # retorna o número de caracteres convertidos
+
     long_done:
         # Restaura registradores preservados
+        popq %r15
+        popq %r14
         popq %r13
         popq %r12
         popq %rbp
@@ -789,7 +828,6 @@ _long_to_str:
 
 # Converte float para string
 _float_to_str:
-    # TODO: Implementar conversão float para string (uso de registradores XMM)
     # Entrada: %xmm0 = valor float, %rdi = buffer de destino
     # Saída: %rax = ponteiro para string resultante
     
@@ -805,7 +843,7 @@ _float_to_str:
     
     # %xmm0 contém o valor float
     # %rdi contém o ponteiro do buffer de destino
-    movq %rdi, %r13                                     # salva ponteiro do buffer
+    movq %rdi, %r13                                     # salva o ponteiro do buffer
     movq $0, %r14                                       # inicializa contador de caracteres
     
     # Verificar se o float é negativo usando operação bit-wise
@@ -860,12 +898,21 @@ _float_to_str:
         
         # Extrair o próximo dígito (parte inteira após multiplicação por 10)
         cvttsd2si %xmm2, %rax                           # converte para inteiro (obtém o dígito)
+        cmpq $9, %rax                                   # verifica se é > 9
+        jle float_digit_ok                              # se <= 9, está ok
+        movq $9, %rax                                   # limita a 9
+    float_digit_ok:
+        cmpq $0, %rax                                   # verifica se é < 0
+        jge float_digit_valid                           # se >= 0, está ok
+        movq $0, %rax                                   # limita a 0
+    float_digit_valid:
         addb $'0', %al                                  # converte o dígito numérico para caractere ASCII
         movb %al, (%r13)                                # armazena o dígito no buffer
         incq %r13                                       # avança o ponteiro do buffer
         incq %r14                                       # incrementa o contador de caracteres
         
         # Remover o dígito já processado da parte fracionária
+        subb $'0', %al                                  # volta para o valor numérico
         cvtsi2sd %rax, %xmm5                            # converte o dígito de volta para double
         subsd %xmm5, %xmm2                              # subtrai o dígito da parte fracionária
         
@@ -904,7 +951,7 @@ _double_to_str:
     # %xmm0 contém o valor double
     # %rdi contém o ponteiro do buffer de destino
     movq %rdi, %r13                                     # salva o ponteiro do buffer
-    movq $0, %r14                                       # inicializa ocontador de caracteres
+    movq $0, %r14                                       # inicializa o ocontador de caracteres
     
     # Verificar se o double é negativo usando operação bit-wise
     movq %xmm0, %rax                                    # move double de XMM0 para RAX para verificar o sinal
@@ -956,13 +1003,25 @@ _double_to_str:
         
         # Extrair o próximo dígito (parte inteira após multiplicação por 10)
         cvttsd2si %xmm0, %rax                           # converte para inteiro (obtém o dígito)
+        cmpq $9, %rax                                   # verifica se é > 9
+        jle double_digit_ok                             # se <= 9, está ok
+        movq $9, %rax                                   # limita a 9
+   
+    double_digit_ok:
+        cmpq $0, %rax                                   # verifica se é < 0
+        jge double_digit_valid                          # se >= 0, está ok
+        movq $0, %rax                                   # limita a 0
+    
+    double_digit_valid:
+        # Salva o dígito numérico antes de converter para ASCII
+        movq %rax, %r12                                 # salva o dígito numérico
         addb $'0', %al                                  # converte o dígito numérico para caractere ASCII
         movb %al, (%r13)                                # armazena o dígito no buffer
         incq %r13                                       # avança o ponteiro do buffer
         incq %r14                                       # incrementa o contador de caracteres
         
         # Remover o dígito já processado da parte fracionária
-        cvtsi2sd %rax, %xmm4                            # converte o dígito de volta para double
+        cvtsi2sd %r12, %xmm4                            # converte o dígito numérico de volta para double
         subsd %xmm4, %xmm0                              # subtrai o dígito da parte fracionária
         
         # Continua loop para próximo dígito
@@ -988,8 +1047,8 @@ _double_to_str:
 
 # Função auxiliar para obter o próximo argumento de printf
 _get_next_printf_arg:
-    movl -56(%rbp), %eax                                # obter o índice do argumento
-    incl -56(%rbp)                                      # incrementar para a próxima chamada
+    incl -56(%rbp)                                      # incrementar primeiro
+    movl -56(%rbp), %eax                                # obter o índice do argumento atual
 
     cmpl $1, %eax
     je get_printf_arg1
@@ -1031,62 +1090,97 @@ _get_next_printf_arg:
         ret
 
 # ######################################################################################################
-# FUNÇÃO DE TESTE PARA PRINTF - TODOS OS TIPOS
+# FUNÇÃO DE TESTE PARA PRINTF (VALORES MÍNIMOS E MÁXIMOS - TODOS OS TIPOS SIGNED)
 # ######################################################################################################
-
 _test_printf_all_types:
     pushq %rbp
     movq %rsp, %rbp
     
-    # Imprime cabeçalho dos testes
-    leaq printf_test_header(%rip), %rdi
+    # Imprime cabeçalho dos testes de valores extremos
+    leaq min_max_header(%rip), %rdi
     call _printf
     
-    # Teste 1: Char (%c)
-    leaq format_char(%rip), %rdi
-    movzbl test_char_value(%rip), %esi                  # Carrega char como segundo argumento
+    # |---------------------------------------------|
+    # |             VALORES MÍNIMOS                |
+    # |---------------------------------------------|
+    
+    # Imprime cabeçalho dos valores mínimos
+    leaq min_header(%rip), %rdi
     call _printf
     
-    # Teste 2: Short (%hd)  
-    leaq format_short(%rip), %rdi
-    movswl test_short_value(%rip), %esi                 # Carrega short como segundo argumento
+    # Teste MIN 1: Char MIN (-128)
+    leaq format_char_min(%rip), %rdi
+    movzbl test_char_min(%rip), %esi                    # Carrega char mínimo como segundo argumento
+    movswq test_char_min(%rip), %rdx                    # Carrega valor numérico para mostrar
     call _printf
     
-    # Teste 3: Int (%d)
-    leaq format_int(%rip), %rdi
-    movl test_int_value(%rip), %esi                     # Carrega int como segundo argumento
+    # Teste MIN 2: Short MIN (-32768)
+    leaq format_short_min(%rip), %rdi
+    movswq test_short_min(%rip), %rsi                   # Carrega short mínimo
     call _printf
     
-    # Teste 4: Long (%ld)
-    leaq format_long(%rip), %rdi
-    movq test_long_value(%rip), %rsi                    # Carrega long como segundo argumento
+    # Teste MIN 3: Int MIN (-2147483648)
+    leaq format_int_min(%rip), %rdi
+    movslq test_int_min(%rip), %rsi                     # Carrega int mínimo
     call _printf
     
-    # Teste 5: Float (%f)
-    leaq format_float(%rip), %rdi
-    movss test_float_value(%rip), %xmm0                 # Carrega float em XMM0
+    # Teste MIN 4: Long MIN (-9223372036854775808)
+    leaq format_long_min(%rip), %rdi
+    movq test_long_min(%rip), %rsi                      # Carrega long mínimo
     call _printf
     
-    # Teste 6: Double (%lf)
-    leaq format_double(%rip), %rdi
-    movsd test_double_value(%rip), %xmm0                # Carrega double em XMM0
+    # Teste MIN 5: Float MIN (-3.4028235e+38)
+    leaq format_float_min(%rip), %rdi
+    movss test_float_min(%rip), %xmm0                   # Carrega float mínimo em XMM0
+    movl test_float_min(%rip), %esi                     # Também carrega como argumento inteiro
     call _printf
     
-    /*
-    # Imprime separador
-    leaq printf_test_separator(%rip), %rdi
+    # Teste MIN 6: Double MIN (-1.7976931348623157e+308)
+    leaq format_double_min(%rip), %rdi
+    movsd test_double_min(%rip), %xmm0                  # Carrega double mínimo em XMM0
+    movq test_double_min(%rip), %rsi                    # Também carrega como argumento inteiro
     call _printf
     
-    # Teste combinado - todos os tipos em uma única chamada
-    leaq format_all_types(%rip), %rdi                   # String de formato
-    movzbl test_char_value(%rip), %esi                  # Arg 1: char
-    movswl test_short_value(%rip), %edx                 # Arg 2: short  
-    movl test_int_value(%rip), %ecx                     # Arg 3: int
-    movq test_long_value(%rip), %r8                     # Arg 4: long
-    movss test_float_value(%rip), %xmm0                 # Arg 5: float (em XMM0)
-    movsd test_double_value(%rip), %xmm1                # Arg 6: double (em XMM1)
+    # |---------------------------------------------|
+    # |             VALORES MÁXIMOS                |
+    # |---------------------------------------------|
+    
+    # Imprime cabeçalho dos valores máximos
+    leaq max_header(%rip), %rdi
     call _printf
-    */
+    
+    # Teste MAX 1: Char MAX (127)
+    leaq format_char_max(%rip), %rdi
+    movzbl test_char_max(%rip), %esi                    # Carrega char máximo como segundo argumento
+    movswq test_char_max(%rip), %rdx                    # Carrega valor numérico para mostrar
+    call _printf
+    
+    # Teste MAX 2: Short MAX (32767)
+    leaq format_short_max(%rip), %rdi
+    movswq test_short_max(%rip), %rsi                   # Carrega short máximo
+    call _printf
+    
+    # Teste MAX 3: Int MAX (2147483647)
+    leaq format_int_max(%rip), %rdi
+    movslq test_int_max(%rip), %rsi                     # Carrega int máximo
+    call _printf
+    
+    # Teste MAX 4: Long MAX (9223372036854775807)
+    leaq format_long_max(%rip), %rdi
+    movq test_long_max(%rip), %rsi                      # Carrega long máximo
+    call _printf
+    
+    # Teste MAX 5: Float MAX (3.4028235e+38)
+    leaq format_float_max(%rip), %rdi
+    movss test_float_max(%rip), %xmm0                   # Carrega float máximo em XMM0
+    movl test_float_max(%rip), %esi                     # Também carrega como argumento inteiro
+    call _printf
+    
+    # Teste MAX 6: Double MAX (1.7976931348623157e+308)
+    leaq format_double_max(%rip), %rdi
+    movsd test_double_max(%rip), %xmm0                  # Carrega double máximo em XMM0
+    movq test_double_max(%rip), %rsi                    # Também carrega como argumento inteiro
+    call _printf
     
     popq %rbp
     ret
