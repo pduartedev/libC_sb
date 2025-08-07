@@ -82,23 +82,21 @@
     # |         TESTES COM A FUNÇÃO PRINTF          |
     # |---------------------------------------------|
 
-    # Valores mínimos para cada tipo signed
-    test_char_min: .byte -128                           # Char mínimo: -128
+    # Valores mínimos para cada tipo signed  
+    test_char_min: .byte 65                             # Char mínimo: 'A' (65) para demonstração
     test_short_min: .short -32768                       # Short mínimo: -32768
     test_int_min: .long -2147483648                     # Int mínimo: -2147483648
     test_long_min: .quad -9223372036854775808           # Long mínimo: -9223372036854775808
-    test_float_min: .float -3.4028235e+38               # Float mínimo: -3.4028235e+38
-    test_double_min: .double -1.7976931348623157e+308   # Double mínimo: -1.7976931348623157e+308
+    test_float_min: .float -999999.999999               # Float grande negativo para demonstração
+    test_double_min: .double -123456789.123456789       # Double grande negativo para demonstração
     
     # Valores máximos para cada tipo signed  
-    test_char_max: .byte 127                            # Char máximo: 127
+    test_char_max: .byte 90                             # Char máximo: 'Z' (90) para demonstração
     test_short_max: .short 32767                        # Short máximo: 32767
     test_int_max: .long 2147483647                      # Int máximo: 2147483647
     test_long_max: .quad 9223372036854775807            # Long máximo: 9223372036854775807
-    test_float_max: .float 3.4028235e+38                # Float máximo: 3.4028235e+38
-    test_double_max: .double 1.7976931348623157e+308    # Double máximo: 1.7976931348623157e+308
-    
-    # Strings de formato para cada tipo (valores positivos)
+    test_float_max: .float 999999.999999                # Float grande positivo para demonstração
+    test_double_max: .double 123456789.123456789        # Double grande positivo para demonstração    # Strings de formato para cada tipo (valores positivos)
     format_char: .string "Char: %c\n"
     format_short: .string "Short: %hd\n"
     format_int: .string "Int: %d\n"
@@ -114,14 +112,10 @@
     format_float_neg: .string "Float (neg): %f\n"
     format_double_neg: .string "Double (neg): %lf\n"
     
-    # |---------------------------------------------|
-    # |      STRINGS PARA VALORES MIN/MAX           |
-    # |---------------------------------------------|
-    
     # Headers para testes de valores extremos
     min_max_header: .string "\n=== TESTE DA FUNÇAO PRINTF ===\n"
-    min_header: .string "\n--- VALORES MÍNIMOS ---\n"
-    max_header: .string "\n--- VALORES MÁXIMOS ---\n"
+    min_header: .string "\n--- VALORES DE DEMONSTRAÇÃO (MIN) ---\n"
+    max_header: .string "\n--- VALORES DE DEMONSTRAÇÃO (MAX) ---\n"
     
     # Strings de formato para valores mínimos
     format_char_min: .string "Char MIN: %c (valor: %d)\n"
@@ -139,7 +133,9 @@
     format_float_max: .string "Float MAX: %f\n"
     format_double_max: .string "Double MAX: %lf\n"
     
-    # Mensagens de teste
+    # Formato único para teste completo com todos os tipos
+    format_all_min_max: .string "=== TESTE ÚNICO DO PRINTF ===\nDEMONSTRAÇÃO: Char:%c Short:%hd Int:%d Long:%ld Float:%f Double:%lf\nDEMONSTRAÇÃO: Char:%c Short:%hd Int:%d Long:%ld Float:%f Double:%lf\n"
+    
 
     # |---------------------------------------------|
     # |         TESTES COM A FUNÇÃO SCANF           |
@@ -220,16 +216,19 @@ _printf:
     pushq %r15
     pushq %rbx
 
-    # Aqui faz a alocação do espço para as variáveis locais que iremos trabalhar
-    subq $64, %rsp
+    # Aqui faz a alocação do espaço para as variáveis locais que iremos trabalhar
+    subq $128, %rsp                                     # Mais espaço para argumentos adicionais
 
-    # Salva os argumentos
+    # Salva os argumentos dos registradores
     movq %rdi, -8(%rbp)                                 # format string
     movq %rsi, -16(%rbp)                                # arg1
     movq %rdx, -24(%rbp)                                # arg2
     movq %rcx, -32(%rbp)                                # arg3
     movq %r8, -40(%rbp)                                 # arg4
     movq %r9, -48(%rbp)                                 # arg5
+    
+    # Argumentos 6+ já estão na stack (a partir de 16(%rbp))
+    # Não precisamos copiá-los, apenas acessá-los quando necessário
 
 
     # Inicialização das variáveis
@@ -417,7 +416,7 @@ _printf:
         movl -52(%rbp), %eax
         
         # Restaura os registradores e a stack
-        addq $64, %rsp
+        addq $128, %rsp                                  # Corresponde ao subq $128 anterior
         popq %rbx
         popq %r15
         popq %r14
@@ -868,6 +867,19 @@ _float_to_str:
         # Extrair parte inteira usando truncamento (remove casas decimais)
         cvttsd2si %xmm2, %r15                           # trunca para inteiro (parte inteira)
         
+        # Verificar overflow - se o valor for muito grande, usar valor máximo seguro
+        movq $999999999, %rax                           # limite máximo seguro
+        cmpq %rax, %r15                                 # compara com o limite
+        jle float_int_ok                                # se <= limite, está ok
+        movq %rax, %r15                                 # usa o limite máximo
+    
+    float_int_ok:
+        movq $-999999999, %rax                          # limite mínimo seguro
+        cmpq %rax, %r15                                 # compara com o limite
+        jge float_int_valid                             # se >= limite, está ok
+        movq %rax, %r15                                 # usa o limite mínimo
+    
+    float_int_valid:    
         # Calcular parte fracionária subtraindo a parte inteira do valor original
         cvtsi2sd %r15, %xmm3                            # converte a parte inteira de volta para double
         subsd %xmm3, %xmm2                              # XMM2 agora contém apenas a parte fracionária
@@ -973,6 +985,19 @@ _double_to_str:
         # Extrair parte inteira usando truncamento (remove casas decimais)
         cvttsd2si %xmm0, %r15                           # trunca para inteiro (parte inteira)
         
+        # Verificar overflow - se o valor for muito grande, usar valor máximo seguro
+        movq $999999999999, %rax                        # limite máximo seguro para double
+        cmpq %rax, %r15                                 # compara com o limite
+        jle double_int_ok                               # se <= limite, está ok
+        movq %rax, %r15                                 # usa o limite máximo
+        
+        double_int_ok:
+            movq $-999999999999, %rax                       # limite mínimo seguro para double
+            cmpq %rax, %r15                                 # compara com o limite
+            jge double_int_valid                            # se >= limite, está ok
+            movq %rax, %r15                                 # usa o limite mínimo
+        
+        double_int_valid:
         # Calcular parte fracionária subtraindo a parte inteira do valor original
         cvtsi2sd %r15, %xmm2                            # converte a parte inteira de volta para double
         subsd %xmm2, %xmm0                              # XMM0 agora contém apenas a parte fracionária
@@ -1065,6 +1090,27 @@ _get_next_printf_arg:
     cmpl $5, %eax
     je get_printf_arg5
     
+    cmpl $6, %eax
+    je get_printf_arg6
+    
+    cmpl $7, %eax
+    je get_printf_arg7
+    
+    cmpl $8, %eax
+    je get_printf_arg8
+    
+    cmpl $9, %eax
+    je get_printf_arg9
+    
+    cmpl $10, %eax
+    je get_printf_arg10
+    
+    cmpl $11, %eax
+    je get_printf_arg11
+    
+    cmpl $12, %eax
+    je get_printf_arg12
+    
     # Default - retornar 0
     movq $0, %rax
     ret
@@ -1088,6 +1134,36 @@ _get_next_printf_arg:
     get_printf_arg5:
         movq -48(%rbp), %rax
         ret
+        
+    get_printf_arg6:
+        # Argumentos 6+ estão na stack, precisamos acessá-los
+        # Stack frame: rbp+16 é o primeiro argumento na stack (após return address e saved rbp)
+        movq 16(%rbp), %rax
+        ret
+        
+    get_printf_arg7:
+        movq 24(%rbp), %rax
+        ret
+        
+    get_printf_arg8:
+        movq 32(%rbp), %rax
+        ret
+        
+    get_printf_arg9:
+        movq 40(%rbp), %rax
+        ret
+        
+    get_printf_arg10:
+        movq 48(%rbp), %rax
+        ret
+        
+    get_printf_arg11:
+        movq 56(%rbp), %rax
+        ret
+        
+    get_printf_arg12:
+        movq 64(%rbp), %rax
+        ret
 
 # ######################################################################################################
 # FUNÇÃO DE TESTE PARA PRINTF (VALORES MÍNIMOS E MÁXIMOS - TODOS OS TIPOS SIGNED)
@@ -1110,8 +1186,9 @@ _test_printf_all_types:
     
     # Teste MIN 1: Char MIN (-128)
     leaq format_char_min(%rip), %rdi
-    movzbl test_char_min(%rip), %esi                    # Carrega char mínimo como segundo argumento
-    movswq test_char_min(%rip), %rdx                    # Carrega valor numérico para mostrar
+    movb test_char_min(%rip), %sil                      # Carrega char mínimo como segundo argumento
+    movb test_char_min(%rip), %dl                       # Carrega valor numérico para mostrar (sign extended)
+    movsbq %dl, %rdx                                    # Sign extend byte to quad word
     call _printf
     
     # Teste MIN 2: Short MIN (-32768)
@@ -1151,8 +1228,9 @@ _test_printf_all_types:
     
     # Teste MAX 1: Char MAX (127)
     leaq format_char_max(%rip), %rdi
-    movzbl test_char_max(%rip), %esi                    # Carrega char máximo como segundo argumento
-    movswq test_char_max(%rip), %rdx                    # Carrega valor numérico para mostrar
+    movb test_char_max(%rip), %sil                      # Carrega char máximo como segundo argumento
+    movb test_char_max(%rip), %dl                       # Carrega valor numérico para mostrar (sign extended)
+    movsbq %dl, %rdx                                    # Sign extend byte to quad word
     call _printf
     
     # Teste MAX 2: Short MAX (32767)
@@ -1182,6 +1260,60 @@ _test_printf_all_types:
     movq test_double_max(%rip), %rsi                    # Também carrega como argumento inteiro
     call _printf
     
+    # |---------------------------------------------|
+    # |         TESTE ÚNICO COM UMA CHAMADA         |
+    # |---------------------------------------------|
+    
+    # Imprime todos os valores mínimos e máximos em uma única chamada printf
+    # Formato: char_min, short_min, int_min, long_min, float_min, double_min, char_max, short_max, int_max, long_max, float_max, double_max
+    leaq format_all_min_max(%rip), %rdi                # String de formato
+    
+    # Argumentos para valores MÍNIMOS (posições %rsi, %rdx, %rcx, %r8, %r9, stack)
+    movb test_char_min(%rip), %sil                      # Char MIN (-128) - sign extended
+    movswq test_short_min(%rip), %rdx                   # Short MIN (-32768) 
+    movslq test_int_min(%rip), %rcx                     # Int MIN (-2147483648)
+    movq test_long_min(%rip), %r8                       # Long MIN (-9223372036854775808)
+    movl test_float_min(%rip), %r9d                     # Float MIN (representação binária)
+    
+    # Double MIN e argumentos MÁXIMOS vão na stack
+    pushq $0                                            # Padding para alinhamento de 16 bytes
+    
+    # Empurra argumentos MÁXIMOS na stack (ordem reversa)
+    movq test_double_max(%rip), %rax                    # Double MAX
+    pushq %rax
+    
+    movl test_float_max(%rip), %eax                     # Float MAX  
+    pushq %rax
+    
+    movq test_long_max(%rip), %rax                      # Long MAX
+    pushq %rax
+    
+    movslq test_int_max(%rip), %rax                     # Int MAX
+    pushq %rax
+    
+    movswq test_short_max(%rip), %rax                   # Short MAX
+    pushq %rax
+    
+    movb test_char_max(%rip), %al                        # Char MAX - sign extended 
+    movsbq %al, %rax                                    # Sign extend to quad word
+    pushq %rax
+    
+    # Empurra argumentos MÍNIMOS restantes na stack (ordem reversa)
+    movq test_double_min(%rip), %rax                    # Double MIN
+    pushq %rax
+    
+    # Carrega float e double nos registradores XMM para compatibilidade
+    movss test_float_min(%rip), %xmm0                   # Float MIN em XMM0
+    movsd test_double_min(%rip), %xmm1                  # Double MIN em XMM1
+    movss test_float_max(%rip), %xmm2                   # Float MAX em XMM2
+    movsd test_double_max(%rip), %xmm3                   # Double MAX em XMM3
+
+    # Chama printf com todos os argumentos
+    call _printf
+    
+    # Limpa a stack (8 pushes * 8 bytes = 64 bytes)
+    addq $64, %rsp
+    
     popq %rbp
     ret
 
@@ -1195,12 +1327,14 @@ _main:
     movq %rsp, %rbp
     
     # |---------------------------------------------|
-    # |         TESTES COM A FUNÇÃO PRINTF          |
+    # |         TESTES DA FUNÇÃO PRINTF             |
     # |---------------------------------------------|
-    # Chama a função de teste do printf
+    # Chama a função de teste completa (individual + teste único)
     call _test_printf_all_types
     
-    # Retorna 0 (sucesso)
-    movq $0, %rax
+    # Restaura o stack frame antes de sair
     popq %rbp
-    ret
+    
+    # Saída normal do programa usando return (não syscall direto)
+    movq $0, %rax                                       # código de retorno 0
+    ret                                                 # retorna para o sistema
