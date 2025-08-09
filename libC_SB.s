@@ -82,6 +82,28 @@
     # |         TESTES COM A FUNÇÃO PRINTF          |
     # |---------------------------------------------|
 
+    # Headers para testes de valores extremos
+    printf_test_header: .string "\n=== TESTE DA FUNÇAO PRINTF ===\n"
+    min_header: .string "\n--- VALORES DE DEMONSTRAÇÃO (MIN) ---\n"
+    max_header: .string "\n--- VALORES DE DEMONSTRAÇÃO (MAX) ---\n"
+
+    # Formato único para teste completo com todos os tipos
+    
+    format_all_min_max: .string "
+=== TESTE COMPLETO DA FUNÇÃO PRINTF ===
+
+DEMONSTRAÇÃO min: Char:%c Short:%hd Int:%d Long:%ld Float:%f Double:%lf
+DEMONSTRAÇÃO max: Char:%c Short:%hd Int:%d Long:%ld Float:%f Double:%lf
+"
+
+    # Valores máximos para cada tipo signed  
+    test_char_max: .byte 90                             # Char máximo: 'Z' (90) para demonstração
+    test_short_max: .short 32767                        # Short máximo: 32767
+    test_int_max: .long 2147483647                      # Int máximo: 2147483647
+    test_long_max: .quad 9223372036854775807            # Long máximo: 9223372036854775807
+    test_float_max: .float 999999.999999                # Float grande positivo para demonstração
+    test_double_max: .double 123456789.123456789        # Double grande positivo para demonstração    # Strings de formato para cada tipo (valores positivos)
+
     # Valores mínimos para cada tipo signed  
     test_char_min: .byte 65                             # Char mínimo: 'A' (65) para demonstração
     test_short_min: .short -32768                       # Short mínimo: -32768
@@ -90,40 +112,12 @@
     test_float_min: .float -999999.999999               # Float grande negativo para demonstração
     test_double_min: .double -123456789.123456789       # Double grande negativo para demonstração
     
-    # Valores máximos para cada tipo signed  
-    test_char_max: .byte 90                             # Char máximo: 'Z' (90) para demonstração
-    test_short_max: .short 32767                        # Short máximo: 32767
-    test_int_max: .long 2147483647                      # Int máximo: 2147483647
-    test_long_max: .quad 9223372036854775807            # Long máximo: 9223372036854775807
-    test_float_max: .float 999999.999999                # Float grande positivo para demonstração
-    test_double_max: .double 123456789.123456789        # Double grande positivo para demonstração    # Strings de formato para cada tipo (valores positivos)
     format_char: .string "Char: %c\n"
     format_short: .string "Short: %hd\n"
     format_int: .string "Int: %d\n"
     format_long: .string "Long: %ld\n"
-    format_float: .string "Float: %f\n"
+    format_float: .string "Float: %f\n" 
     format_double: .string "Double: %lf\n"
-    
-    # Strings de formato para cada tipo (valores negativos)
-    format_char_neg: .string "Char (neg): %c\n"
-    format_short_neg: .string "Short (neg): %hd\n"
-    format_int_neg: .string "Int (neg): %d\n"
-    format_long_neg: .string "Long (neg): %ld\n"
-    format_float_neg: .string "Float (neg): %f\n"
-    format_double_neg: .string "Double (neg): %lf\n"
-    
-    # Headers para testes de valores extremos
-    min_max_header: .string "\n=== TESTE DA FUNÇAO PRINTF ===\n"
-    min_header: .string "\n--- VALORES DE DEMONSTRAÇÃO (MIN) ---\n"
-    max_header: .string "\n--- VALORES DE DEMONSTRAÇÃO (MAX) ---\n"
-    
-    # Strings de formato para valores mínimos
-    format_char_min: .string "Char MIN: %c (valor: %d)\n"
-    format_short_min: .string "Short MIN: %hd\n"
-    format_int_min: .string "Int MIN: %d\n"
-    format_long_min: .string "Long MIN: %ld\n"
-    format_float_min: .string "Float MIN: %f\n"
-    format_double_min: .string "Double MIN: %lf\n"
     
     # Strings de formato para valores máximos
     format_char_max: .string "Char MAX: %c (valor: %d)\n"
@@ -133,13 +127,156 @@
     format_float_max: .string "Float MAX: %f\n"
     format_double_max: .string "Double MAX: %lf\n"
     
-    # Formato único para teste completo com todos os tipos
-    format_all_min_max: .string "=== TESTE ÚNICO DO PRINTF ===\nDEMONSTRAÇÃO: Char:%c Short:%hd Int:%d Long:%ld Float:%f Double:%lf\nDEMONSTRAÇÃO: Char:%c Short:%hd Int:%d Long:%ld Float:%f Double:%lf\n"
+    # Strings de formato para valores mínimos
+    format_char_min: .string "Char MIN: %c (valor: %d)\n"
+    format_short_min: .string "Short MIN: %hd\n"
+    format_int_min: .string "Int MIN: %d\n"
+    format_long_min: .string "Long MIN: %ld\n"
+    format_float_min: .string "Float MIN: %f\n"
+    format_double_min: .string "Double MIN: %lf\n"
     
-
+    # Strings de formato para cada tipo (valores negativos)
+    format_char_neg: .string "Char (neg): %c\n"
+    format_short_neg: .string "Short (neg): %hd\n"
+    format_int_neg: .string "Int (neg): %d\n"
+    format_long_neg: .string "Long (neg): %ld\n"
+    format_float_neg: .string "Float (neg): %f\n"
+    format_double_neg: .string "Double (neg): %lf\n"
+    
     # |---------------------------------------------|
     # |         TESTES COM A FUNÇÃO SCANF           |
     # |---------------------------------------------|
+    
+    # Headers e mensagens para testes de scanf
+    scanf_header: .string "\n=== TESTE DA FUNÇÃO SCANF ===\n"
+    
+    # Strings para prompts de entrada do scanf
+    scanf_char_prompt: .string "Digite um caractere: "
+    scanf_char_format: .string "%c"
+    scanf_char_result: .string "Char lido: %c (ASCII: %d)\n"
+    
+    scanf_short_prompt: .string "Digite um numero short: "
+    scanf_short_format: .string "%hd"
+    scanf_short_result: .string "Short lido: %hd\n"
+    
+    scanf_long_prompt: .string "Digite um numero long: "
+    scanf_long_format: .string "%ld"
+    scanf_long_result: .string "Long lido: %ld\n"
+    
+    scanf_int_prompt: .string "Digite um numero int: "
+    scanf_int_format: .string "%d"
+    scanf_int_result: .string "Int lido: %d\n"
+    
+    scanf_float_prompt: .string "Digite um numero float: "
+    scanf_float_format: .string "%f"
+    scanf_float_result: .string "Float lido: %f\n"
+    
+    scanf_double_prompt: .string "Digite um numero double: "
+    scanf_double_format: .string "%lf"
+    scanf_double_result: .string "Double lido: %lf\n"
+    
+    # Variáveis para armazenar os valores lidos - 12 valores (pares min/max para cada tipo)
+    .align 8
+    char_input:      .byte 0     # Char 1 (pequeno)
+    char_input2:     .byte 0     # Char 2 (grande) 
+    short_input:     .short 0    # Short 1 (pequeno)
+    short_input2:    .short 0    # Short 2 (grande)
+    int_input:       .long 0     # Int 1 (pequeno)
+    int_input2:      .long 0     # Int 2 (grande)
+    long_input:      .quad 0     # Long 1 (pequeno)
+    long_input2:     .quad 0     # Long 2 (grande)
+    float_input:     .long 0     # Float 1 (pequeno)
+    float_input2:    .long 0     # Float 2 (grande)
+    double_input:    .quad 0     # Double 1 (pequeno)
+    double_input2:   .quad 0     # Double 2 (grande)
+
+    # Variáveis para teste com 12 valores (mínimos e máximos)
+    char_input3:     .byte 0     # Char 3 (adicional)
+    char_input4:     .byte 0     # Char MIN (-128)
+    char_input5:     .byte 0     # Char MAX (127)
+    short_input3:    .short 0    # Short MIN (-32768)
+    short_input4:    .short 0    # Short MAX (32767)
+    int_input3:      .long 0     # Int MIN (-2147483648)
+    int_input4:      .long 0     # Int MAX (2147483647)
+    long_input3:     .quad 0     # Long MIN (-9223372036854775808)
+    long_input4:     .quad 0     # Long MAX (9223372036854775807)
+    float_input3:    .long 0     # Float MIN (-999999.999999)
+    float_input4:    .long 0     # Float MAX (999999.999999)
+    double_input3:   .quad 0     # Double MIN (-999999999999999.999999999999999)
+    double_input4:   .quad 0     # Double MAX (999999999999999.999999999999999)
+
+
+    # Strings para teste de múltiplos tipos em uma única chamada
+    scanf_multi_prompt: .string "Digite valores EXTREMOS (char:-128/127, short:-32768/32767, int:-2147483648/2147483647, float:±3.4e38, double:±1.7e308):\n"
+    scanf_multi_format: .string "%c %hd %d %f %lf"
+    scanf_multi_result: .string "Valores EXTREMOS lidos:\n  Char: %c (valor: %d)\n  Short: %hd\n  Int: %d\n  Float: %f\n  Double: %lf\n"
+
+    # Strings para testes individuais de scanf - VALORES MÍNIMOS
+    scanf_char_min_prompt: .string "TESTE 1 - Digite char MÍNIMO (-128 ou caractere especial): "
+    scanf_char_min_format: .string "%c"
+    scanf_char_min_result: .string "Char MÍNIMO lido: '%c' (valor: %d)\n"
+
+    scanf_short_min_prompt: .string "TESTE 2 - Digite short MÍNIMO (-32768): "
+    scanf_short_min_format: .string "%hd"
+    scanf_short_min_result: .string "Short MÍNIMO lido: %hd\n"
+
+    scanf_int_min_prompt: .string "TESTE 3 - Digite int MÍNIMO (-2147483648): "
+    scanf_int_min_format: .string "%d"
+    scanf_int_min_result: .string "Int MÍNIMO lido: %d\n"
+
+    scanf_long_min_prompt: .string "TESTE 4 - Digite long MÍNIMO (-9223372036854775808): "
+    scanf_long_min_format: .string "%ld"
+    scanf_long_min_result: .string "Long MÍNIMO lido: %ld\n"
+
+    scanf_float_min_prompt: .string "TESTE 5 - Digite float MÍNIMO (-3.4e38): "
+    scanf_float_min_format: .string "%f"
+    scanf_float_min_result: .string "Float MÍNIMO lido: %f\n"
+
+    scanf_double_min_prompt: .string "TESTE 6 - Digite double MÍNIMO (-1.7e308): "
+    scanf_double_min_format: .string "%lf"
+    scanf_double_min_result: .string "Double MÍNIMO lido: %lf\n"
+
+    # Strings para testes individuais de scanf - VALORES MÁXIMOS
+    scanf_char_max_prompt: .string "TESTE 7 - Digite char MÁXIMO (127 ou ~): "
+    scanf_char_max_format: .string "%c"
+    scanf_char_max_result: .string "Char MÁXIMO lido: '%c' (valor: %d)\n"
+
+    scanf_short_max_prompt: .string "TESTE 8 - Digite short MÁXIMO (32767): "
+    scanf_short_max_format: .string "%hd"
+    scanf_short_max_result: .string "Short MÁXIMO lido: %hd\n"
+
+    scanf_int_max_prompt: .string "TESTE 9 - Digite int MÁXIMO (2147483647): "
+    scanf_int_max_format: .string "%d"
+    scanf_int_max_result: .string "Int MÁXIMO lido: %d\n"
+
+    scanf_long_max_prompt: .string "TESTE 10 - Digite long MÁXIMO (9223372036854775807): "
+    scanf_long_max_format: .string "%ld"
+    scanf_long_max_result: .string "Long MÁXIMO lido: %ld\n"
+
+    scanf_float_max_prompt: .string "TESTE 11 - Digite float MÁXIMO (3.4e38): "
+    scanf_float_max_format: .string "%f"
+    scanf_float_max_result: .string "Float MÁXIMO lido: %f\n"
+
+    scanf_double_max_prompt: .string "TESTE 12 - Digite double MÁXIMO (1.7e308): "
+    scanf_double_max_format: .string "%lf"
+    scanf_double_max_result: .string "Double MÁXIMO lido: %lf\n"
+
+    # Cabeçalhos para os testes
+    scanf_test_header: .string "\n=== TESTE DA FUNÇAO SCANF ===\n"
+    scanf_min_header: .string "\n=== TESTES COM VALORES MÍNIMOS ===\n"
+    scanf_max_header: .string "\n=== TESTES COM VALORES MÁXIMOS ===\n"
+
+    # Strings para scanf único com 12 valores
+    scanf_12_prompt: .string "\nDigite 12 valores (char short int long float double char short int long float double):\nPrimeiros 6 (MÍNIMOS): A -32768 -2147483648 -9223372036854775808 -3.4e38 -1.7e308\nSegundos 6 (MÁXIMOS): Z 32767 2147483647 9223372036854775807 3.4e38 1.7e308\nEntrada: "
+    scanf_6_format: .string "%c %hd %d %ld %f %lf"
+    scanf_12_format: .string "%c %hd %d %ld %f %lf %c %hd %d %ld %f %lf"
+    # String para resultado dos 12 valores
+    scanf_12_result: .string "\n=== RESULTADOS DOS 12 VALORES LIDOS ===\n\nVALORES MÍNIMOS:\n  1. Char: '%c' (valor: %d)\n  2. Short: %hd\n  3. Int: %d\n  4. Long: %ld\n  5. Float: %f\n  6. Double: %lf\n\nVALORES MÁXIMOS:\n  7. Char: '%c' (valor: %d)\n  8. Short: %hd\n  9. Int: %d\n  10. Long: %ld\n  11. Float: %f\n  12. Double: %lf\n"
+    
+    # Strings para scanf único com 6 valores
+    scanf_6_test_header: .string "\n######################################################################################################\n#                                SCANF - 6 VALORES EM UMA ÚNICA CHAMADA                          #\n######################################################################################################\n"
+    scanf_6_prompt: .string "Digite 6 valores separados por espaço (char short int long float double): "
+    scanf_6_result: .string "\n=== RESULTADOS DOS 6 VALORES LIDOS ===\n1. Char: '%c' (valor: %d)\n2. Short: %hd\n3. Int: %d\n4. Long: %ld\n5. Float: %f\n6. Double: %lf\n"
 
     # |---------------------------------------------|
     # |         TESTES COM A FUNÇÃO FOPEN           |
@@ -188,11 +325,13 @@
     
     # FUNÇÕES AUXILIARES
     .globl _get_next_printf_arg                             # Obtém o próximo argumento para printf
-    .globl _test_printf_all_types                           # Função de teste para todos os tipos
-    .globl _test_min_max_values                             # Função de teste para valores mínimos e máximos
+    .globl _get_next_scanf_arg                              # Obtém o próximo argumento para scanf
+    .globl _skip_whitespace                                 # Pula espaços em branco, tabs e newlines
+    .globl _skip_number_in_buffer                           # implementação básica para avançar buffer TODO: CORRIGIR!!!
 
     # FUNÇÕES DE TESTES
-    .globl _test_printf_all_types                           # Test todos os valroes da função printf
+    .globl _test_printf_all_types                           # Test todos os valores da função printf
+    .globl _test_scanf_all_types                            # Test todos os valroes da função scanf
 
     # FUNÇÃO PRINCIPAL
     .globl _main
@@ -318,9 +457,12 @@ _printf:
     printf_char:
         call _get_next_printf_arg
         
-        movb %al, (%r12)                                # coloca o caractere no buffer
-        incq %r12
-        incl -52(%rbp)
+        movq %rax, %rdi                                 # char value como argumento
+        movq %r12, %rsi                                 # buffer de destino
+        call _char_to_str                               # converter char para string
+        
+        addq %rax, %r12                                 # avança o buffer pelo número de caracteres
+        addl %eax, -52(%rbp)                            # adiciona ao contador de caracteres
         
         jmp printf_main_loop
 
@@ -426,15 +568,265 @@ _printf:
         ret
 
 # ######################################################################################################
-# SCANF - Implementação de scanf com suporte aos tipos: %d, %s, %c, %f, %lf  
+# SCANF - Implementação de scanf com suporte aos tipos: char, short, int, long, float, double
 # ######################################################################################################
 
 _scanf:
-    # TODO: Implementar scanf completo
     # Entrada: %rdi = format string, %rsi, %rdx, %rcx, %r8, %r9 = ponteiros para variáveis
     # Saída: %rax = número de items lidos
-    movq $0, %rax
-    ret
+    pushq %rbp
+    movq %rsp, %rbp
+
+    # Alocação de variáveis locais expandida
+    subq $8, %rsp       # format_ptr (ponteiro para format string)
+    subq $8, %rsp       # current_arg_ptr (ponteiro para argumento atual)
+    subq $8, %rsp       # buffer_ptr (ponteiro para buffer de entrada)
+    subq $8, %rsp       # temp_str_ptr (ponteiro temporário para string)
+    subq $4, %rsp       # bytes_read (quantidade de bytes lidos)
+    subq $4, %rsp       # items_read (quantidade de itens processados)
+    subq $4, %rsp       # arg_index (índice do argumento atual)
+    subq $1, %rsp       # format_char (caractere do formato)
+    subq $3, %rsp       # padding para alinhamento
+
+    # Salvar argumentos de entrada (ponteiros para variáveis)
+    subq $8, %rsp       # arg1_saved (RSI)
+    subq $8, %rsp       # arg2_saved (RDX)
+    subq $8, %rsp       # arg3_saved (RCX)
+    subq $8, %rsp       # arg4_saved (R8)
+    subq $8, %rsp       # arg5_saved (R9)
+
+    # Salvar os argumentos
+    movq %rdi, -8(%rbp)             # format_ptr = format string
+    movq %rsi, -56(%rbp)            # arg1_saved = RSI
+    movq %rdx, -64(%rbp)            # arg2_saved = RDX
+    movq %rcx, -72(%rbp)            # arg3_saved = RCX
+    movq %r8, -80(%rbp)             # arg4_saved = R8
+    movq %r9, -88(%rbp)             # arg5_saved = R9
+
+    # Inicializar variáveis
+    leaq input_buffer(%rip), %rax
+    movq %rax, -24(%rbp)            # buffer_ptr = input_buffer
+    movl $0, -36(%rbp)              # bytes_read = 0
+    movl $0, -40(%rbp)              # items_read = 0
+    movl $0, -44(%rbp)              # arg_index = 0
+
+    # Verificar se já existe dados no buffer (input_position > 0)
+    movq input_position(%rip), %rcx
+    cmpq $0, %rcx
+    jg scanf_use_existing_buffer
+
+    # Ler entrada do usuário (primeira vez)
+    movq $SYS_READ, %rax
+    movq $STDIN_FD, %rdi
+    movq -24(%rbp), %rsi            # usa o buffer_ptr
+    movq $BUFFER_SIZE, %rdx
+    syscall
+
+    # Verificar se houve erro na leitura
+    cmpl $0, %eax
+    jle scanf_complete_error
+    movl %eax, -36(%rbp)            # bytes_read = resultado da syscall
+    movq %rax, input_size(%rip)     # salva tamanho lido
+    movq $0, input_position(%rip)   # zera posição inicial
+
+    scanf_use_existing_buffer:
+    # Processar formato e argumentos
+    movq -8(%rbp), %r12             # r12 = format_ptr
+    movq -24(%rbp), %r13            # r13 = buffer_ptr (entrada do usuário)
+    addq input_position(%rip), %r13 # ajusta para posição atual no buffer
+
+    scanf_parse_loop:
+        movb (%r12), %al                # al = caractere atual do formato
+        testb %al, %al                  # verifica o fim da string
+        jz scanf_complete_success
+        
+        cmpb $'%', %al                  # verificar se é o especificador
+        jne scanf_skip_char
+        
+        # Processa o especificador
+        incq %r12                       # próximo caractere após '%'
+        movb (%r12), %al                # al = tipo do especificador
+        movb %al, -45(%rbp)             # salva format_char
+        
+        # Determina o ponteiro do argumento atual de forma dinâmica
+        movl -44(%rbp), %ecx            # ecx = arg_index
+        
+        # Verifica se é um dos primeiros 5 argumentos (registradores)
+        cmpl $5, %ecx
+        jl scanf_register_args
+        
+        # Argumentos 6+ estão na stack do caller
+        # Posição na stack: 16 + (arg_index - 5) * 8 + (%rbp)
+        subl $5, %ecx                   # ecx = arg_index - 5 (offset a partir do 6º)
+        imulq $8, %rcx                  # ecx = offset * 8 bytes
+        addq $16, %rcx                  # ecx = 16 + offset (posição na stack)
+        movq (%rbp,%rcx), %r14          # r14 = argumento da stack
+        jmp scanf_process_type
+        
+    scanf_register_args:
+        # Argumentos 0-4 estão salvos nas variáveis locais
+        # Calcula o offset: -56 + arg_index * 8
+        movl -44(%rbp), %ecx            # ecx = arg_index
+        imulq $8, %rcx                  # ecx = arg_index * 8
+        subq %rcx, %r14                 # r14 = base_offset - (arg_index * 8)
+        movq $-56, %r14                 # base offset para arg0
+        subq %rcx, %r14                 # r14 = -56 - (arg_index * 8)
+        movq (%rbp,%r14), %r14          # r14 = argumento salvo
+        jmp scanf_process_type
+
+    scanf_process_type:
+        # Verificar tipo do especificador
+        cmpb $'c', %al                  # char
+        je scanf_read_char
+        
+        cmpb $'h', %al                  # verifica se é %hd (short)
+        je scanf_check_short
+        
+        cmpb $'d', %al                  # int
+        je scanf_read_int
+        
+        cmpb $'l', %al                  # verifica se é %ld (long)
+        je scanf_check_long
+        
+        cmpb $'f', %al                  # float
+        je scanf_read_float
+
+    scanf_check_short:
+        incq %r12                       # próximo caractere
+        movb (%r12), %al
+
+        cmpb $'d', %al
+        
+        je scanf_read_short
+        jmp scanf_complete_error
+        
+    scanf_check_long:
+        incq %r12                      # próximo caractere
+        movb (%r12), %al
+        
+        cmpb $'d', %al
+        
+        je scanf_read_long
+        cmpb $'f', %al                 # %lf (double)
+        
+        je scanf_read_double
+        jmp scanf_complete_error
+        
+    scanf_read_char:
+        # Ler um caractere usando função de conversão
+        call _skip_whitespace         # pula espaços/tabs/newlines
+        
+        movq %r13, %rdi               # string de entrada 
+        call _str_to_char             # converter string para char
+        
+        movb %al, (%r14)              # *arg = char value
+        incq %r13                     # avançar buffer (apenas 1 posição para char)
+        incq input_position(%rip)     # atualizar posição global
+        
+        jmp scanf_item_processed
+        
+    scanf_read_short:
+        # Ler short
+        call _skip_whitespace        # pula espaços em branco
+        
+        movq %r13, %rdi              # string de entrada
+        
+        call _str_to_short           # converte para short
+        
+        movw %ax, (%r14)             # *arg = short value
+        
+        call _skip_number_in_buffer  # avançar buffer
+        
+        jmp scanf_item_processed
+        
+    scanf_read_int:
+        # Ler int
+        call _skip_whitespace        # pula espaços em branco
+        
+        movq %r13, %rdi              # string de entrada
+        
+        call _str_to_int             # converte para int
+        
+        movl %eax, (%r14)            # *arg = int value
+        
+        call _skip_number_in_buffer  # avança o buffer
+        
+        jmp scanf_item_processed
+        
+    scanf_read_long:
+        # Ler long
+        call _skip_whitespace        # pula espaços em branco
+        
+        movq %r13, %rdi              # string de entrada
+        
+        call _str_to_long            # converte para long
+        
+        movq %rax, (%r14)            # *arg = long value
+        
+        call _skip_number_in_buffer  # avança o buffer
+        
+        jmp scanf_item_processed
+        
+    scanf_read_float:
+        # Ler float
+        call _skip_whitespace       # pula espaços em branco
+        
+        movq %r13, %rdi             # string de entrada
+        
+        call _str_to_float          # converte para float, retorna chars consumidos em %rax
+        
+        pushq %rax                  # salva número de caracteres consumidos
+        
+        movd %xmm0, %eax            # obtém representação binária do float
+        
+        movl %eax, (%r14)           # *arg = float value (como bits)
+        
+        popq %rax                   # recupera número de caracteres consumidos
+        addq %rax, %r13             # avança buffer pelo número de caracteres lidos
+        addq %rax, input_position(%rip) # atualiza posição global
+        
+        jmp scanf_item_processed
+        
+    scanf_read_double:
+        # Ler double
+        call _skip_whitespace      # pula espaços em branco
+        
+        movq %r13, %rdi            # string de entrada
+        
+        call _str_to_double        # converte para double, retorna chars consumidos em %rax
+        
+        pushq %rax                 # salva número de caracteres consumidos
+        
+        movq %xmm0, %rax           # obtém representação binária do double
+        movq %rax, (%r14)          # *arg = double value (como bits)
+        
+        popq %rax                  # recupera número de caracteres consumidos  
+        addq %rax, %r13            # avança buffer pelo número de caracteres lidos
+        addq %rax, input_position(%rip) # atualiza posição global
+        
+        jmp scanf_item_processed
+        
+    scanf_item_processed:
+        incl -40(%rbp)             # items_read++
+        incl -44(%rbp)             # arg_index++
+        
+    scanf_skip_char:
+        incq %r12                  # próximo caractere no formato
+        jmp scanf_parse_loop
+        
+    scanf_complete_error:
+        movl $-1, %eax             # retornar -1 (erro)
+        jmp scanf_complete_done
+        
+    scanf_complete_success:
+        movl -40(%rbp), %eax       # retornar items_read 
+        
+    scanf_complete_done:
+        # Restaurar stack
+        addq $88, %rsp             # total de bytes alocados
+        popq %rbp
+
+        ret
 
 # ######################################################################################################
 # FPRINTF - Implementação de fprintf para escrita em arquivos
@@ -485,46 +877,829 @@ _fclose:
 # ######################################################################################################
 
 _str_to_char:
-    # TODO: Implementar conversão string para char
     # Entrada: %rdi = ponteiro para string
-    # Saída: %rax = valor char convertido
-    movq $0, %rax
-    ret
+    # Saída: %rax = valor char convertido (primeiro caractere da string)
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Verifica se o ponteiro é válido (não NULL)
+    testq %rdi, %rdi
+    jz str_to_char_null
+    
+    # Carrega o primeiro caractere da string
+    movb (%rdi), %al                                    # carrega o primeiro byte da string
+    movzbq %al, %rax                                    # zero-extend para 64 bits (unsigned)
+    
+    # Verifica se é o terminador nulo
+    testb %al, %al
+    jz str_to_char_empty
+    
+    jmp str_to_char_done
+    
+    str_to_char_null:
+        # Retorna 0 se ponteiro for NULL
+        movq $0, %rax
+        jmp str_to_char_done
+        
+    str_to_char_empty:
+        # Retorna 0 se string for vazia (primeiro char é '\0')
+        movq $0, %rax
+        jmp str_to_char_done
+    
+    str_to_char_done:
+        popq %rbp
+        ret
 
 _str_to_short:
-    # TODO: Implementar conversão string para short
     # Entrada: %rdi = ponteiro para string  
     # Saída: %rax = valor short convertido
-    movq $0, %rax
-    ret
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Preserva os registradores que serão utilizados
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+    
+    # Verifica se o ponteiro é válido (não NULL)
+    testq %rdi, %rdi
+    jz str_to_short_null
+    
+    # Inicialização das variáveis
+    movq %rdi, %r12                                     # ponteiro para a string
+    movq $0, %r13                                       # resultado acumulado
+    movq $0, %r14                                       # flag de sinal (0=positivo, 1=negativo)
+    movq $1, %r15                                       # multiplicador (para conversão)
+    
+    # Verifica se o primeiro caractere é um sinal
+    movb (%r12), %al                                    # carrega o primeiro caractere
+    testb %al, %al                                      # verifica se chegou no final da string
+    jz str_to_short_empty
+    
+    cmpb $'-', %al                                      # verifica se o sinal é negativo
+    je str_to_short_negative
+
+    cmpb $'+', %al                                      # verifica se o sinal é positivo
+    je str_to_short_positive
+    
+    # Se não há sinal, começa a conversão diretamente
+    jmp str_to_short_convert_loop
+    
+    str_to_short_negative:
+        movq $1, %r14                                   # marca como negativo
+        incq %r12                                       # pula o sinal '-'
+        jmp str_to_short_convert_loop
+        
+    str_to_short_positive:
+        incq %r12                                       # pula o sinal '+'
+        jmp str_to_short_convert_loop
+    
+    str_to_short_convert_loop:
+        movb (%r12), %al                                # carrega o caractere atual
+        testb %al, %al                                  # verifica se é o fim da string
+        jz str_to_short_done
+        
+        # Verifica se é um dígito válido
+        cmpb $'0', %al
+        jb str_to_short_done                            # se for menor que '0', para
+        cmpb $'9', %al
+        ja str_to_short_done                            # se for maior que '9', para
+        
+        # Converte caractere para dígito numérico
+        subb $'0', %al                                  # converte ASCII para número
+        movzbq %al, %rax                                # zero-extend para 64 bits
+        
+        # Multiplica o resultado anterior por 10 e adiciona ao novo dígito
+        imulq $10, %r13                                 # r13 = r13 * 10
+        addq %rax, %r13                                 # r13 = r13 + novo_dígito
+        
+        # Verifica overflow para short (-32768 a 32767)
+        cmpq $32767, %r13                               # verifica se excede o limite positivo
+        jg str_to_short_overflow
+        
+        incq %r12                                       # próximo caractere
+        jmp str_to_short_convert_loop
+    
+    str_to_short_done:
+        # Aplica o sinal se necessário
+        testq %r14, %r14                                # verifica se é negativo
+        jz str_to_short_apply_result                    # se positivo, vai direto
+        
+        # Verifica se há overflow para negativo
+        cmpq $32768, %r13                               # verifica se excede o limite negativo
+        jg str_to_short_overflow
+        
+        negq %r13                                       # aplica o sinal negativo
+        
+    str_to_short_apply_result:
+        movq %r13, %rax                                 # retorna o resultado
+        jmp str_to_short_exit
+    
+    str_to_short_null:
+        # Retorna 0 se ponteiro for NULL
+        movq $0, %rax
+        jmp str_to_short_exit
+        
+    str_to_short_empty:
+        # Retorna 0 se string for vazia
+        movq $0, %rax
+        jmp str_to_short_exit
+        
+    str_to_short_overflow:
+        # Em caso de overflow, retorna o valor limite apropriado
+        testq %r14, %r14                                # verifica sinal
+        jz str_to_short_max_positive
+        
+        # Overflow negativo: retorna -32768
+        movq $-32768, %rax
+        jmp str_to_short_exit
+        
+    str_to_short_max_positive:
+        # Overflow positivo: retorna 32767
+        movq $32767, %rax
+        jmp str_to_short_exit
+    
+    str_to_short_exit:
+        # Restaura registradores preservados
+        popq %r15
+        popq %r14
+        popq %r13
+        popq %r12
+        popq %rbp
+        ret
 
 _str_to_int:
-    # TODO: Implementar conversão string para int
-    # Entrada: %rdi = ponteiro para string
+    # Entrada: %rdi = ponteiro para string  
     # Saída: %rax = valor int convertido
-    movq $0, %rax
-    ret
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Preserva os registradores que serão utilizados
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+    
+    # Verifica se o ponteiro é válido (não NULL)
+    testq %rdi, %rdi
+    jz str_to_int_null
+    
+    # Inicialização das variáveis
+    movq %rdi, %r12                                     # ponteiro para a string
+    movq $0, %r13                                       # resultado acumulado
+    movq $0, %r14                                       # flag de sinal (0=positivo, 1=negativo)
+    movq $1, %r15                                       # multiplicador (para conversão)
+    
+    # Verifica se o primeiro caractere é um sinal
+    movb (%r12), %al                                    # carrega o primeiro caractere
+    testb %al, %al                                      # verifica se chegou no final da string
+    jz str_to_int_empty
+    
+    cmpb $'-', %al                                      # verifica se o sinal é negativo
+    je str_to_int_negative
+
+    cmpb $'+', %al                                      # verifica se o sinal é positivo
+    je str_to_int_positive
+    
+    # Se não há sinal, começa a conversão diretamente
+    jmp str_to_int_convert_loop
+    
+    str_to_int_negative:
+        movq $1, %r14                                   # marca como negativo
+        incq %r12                                       # pula o sinal '-'
+        jmp str_to_int_convert_loop
+        
+    str_to_int_positive:
+        incq %r12                                       # pula o sinal '+'
+        jmp str_to_int_convert_loop
+    
+    str_to_int_convert_loop:
+        movb (%r12), %al                                # carrega o caractere atual
+        testb %al, %al                                  # verifica se é o fim da string
+        jz str_to_int_done
+        
+        # Verifica se é um dígito válido
+        cmpb $'0', %al
+        jb str_to_int_done                              # se for menor que '0', para
+        cmpb $'9', %al
+        ja str_to_int_done                              # se for maior que '9', para
+        
+        # Converte caractere para dígito numérico
+        subb $'0', %al                                  # converte ASCII para número
+        movzbq %al, %rax                                # zero-extend para 64 bits
+        
+        # Multiplica o resultado anterior por 10 e adiciona ao novo dígito
+        imulq $10, %r13                                 # r13 = r13 * 10
+        addq %rax, %r13                                 # r13 = r13 + novo_dígito
+        
+        # Verifica overflow para int (-2147483648 a 2147483647)
+        cmpq $2147483647, %r13                          # verifica se excede o limite positivo
+        jg str_to_int_overflow
+        
+        incq %r12                                       # próximo caractere
+        jmp str_to_int_convert_loop
+    
+    str_to_int_done:
+        # Aplica o sinal se necessário
+        testq %r14, %r14                                # verifica se é negativo
+        jz str_to_int_apply_result                      # se positivo, vai direto
+        
+        # Verifica se há overflow para negativo
+        movq $2147483648, %rax                          # carrega limite negativo
+        cmpq %rax, %r13                                 # verifica se excede o limite negativo
+        jg str_to_int_overflow
+        
+        negq %r13                                       # aplica o sinal negativo
+        
+    str_to_int_apply_result:
+        movq %r13, %rax                                 # retorna o resultado
+        jmp str_to_int_exit
+    
+    str_to_int_null:
+        # Retorna 0 se ponteiro for NULL
+        movq $0, %rax
+        jmp str_to_int_exit
+        
+    str_to_int_empty:
+        # Retorna 0 se string for vazia
+        movq $0, %rax
+        jmp str_to_int_exit
+        
+    str_to_int_overflow:
+        # Em caso de overflow, retorna o valor limite apropriado
+        testq %r14, %r14                                # verifica sinal
+        jz str_to_int_max_positive
+        
+        # Overflow negativo: retorna -2147483648
+        movq $-2147483648, %rax
+        jmp str_to_int_exit
+        
+    str_to_int_max_positive:
+        # Overflow positivo: retorna 2147483647
+        movq $2147483647, %rax
+        jmp str_to_int_exit
+    
+    str_to_int_exit:
+        # Restaura registradores preservados
+        popq %r15
+        popq %r14
+        popq %r13
+        popq %r12
+        popq %rbp
+        ret
 
 _str_to_long:
-    # TODO: Implementar conversão string para long
-    # Entrada: %rdi = ponteiro para string
+    # Entrada: %rdi = ponteiro para string  
     # Saída: %rax = valor long convertido
-    movq $0, %rax
-    ret
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Preserva os registradores que serão utilizados
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+    
+    # Verifica se o ponteiro é válido (não NULL)
+    testq %rdi, %rdi
+    jz str_to_long_null
+    
+    # Inicialização das variáveis
+    movq %rdi, %r12                                     # ponteiro para a string
+    movq $0, %r13                                       # resultado acumulado
+    movq $0, %r14                                       # flag de sinal (0=positivo, 1=negativo)
+    movq $1, %r15                                       # multiplicador (para conversão)
+    
+    # Verifica se o primeiro caractere é um sinal
+    movb (%r12), %al                                    # carrega o primeiro caractere
+    testb %al, %al                                      # verifica se chegou no final da string
+    jz str_to_long_empty
+    
+    cmpb $'-', %al                                      # verifica se o sinal é negativo
+    je str_to_long_negative
+
+    cmpb $'+', %al                                      # verifica se o sinal é positivo
+    je str_to_long_positive
+    
+    # Se não há sinal, começa a conversão diretamente
+    jmp str_to_long_convert_loop
+    
+    str_to_long_negative:
+        movq $1, %r14                                   # marca como negativo
+        incq %r12                                       # pula o sinal '-'
+        jmp str_to_long_convert_loop
+        
+    str_to_long_positive:
+        incq %r12                                       # pula o sinal '+'
+        jmp str_to_long_convert_loop
+    
+    str_to_long_convert_loop:
+        movb (%r12), %al                                # carrega o caractere atual
+        testb %al, %al                                  # verifica se é o fim da string
+        jz str_to_long_done
+        
+        # Verifica se é um dígito válido
+        cmpb $'0', %al
+        jb str_to_long_done                             # se for menor que '0', para
+        cmpb $'9', %al
+        ja str_to_long_done                             # se for maior que '9', para
+        
+        # Converte caractere para dígito numérico
+        subb $'0', %al                                  # converte ASCII para número
+        movzbq %al, %rax                                # zero-extend para 64 bits
+        
+        # Verifica overflow antes da multiplicação (limite positivo dividido por 10)
+        movq $922337203685477580, %rdx                  # 9223372036854775807 / 10 = 922337203685477580
+        cmpq %rdx, %r13
+        jg str_to_long_overflow                         # se r13 > limite/10, vai dar overflow
+        
+        # Se r13 == limite/10, verifica se o último dígito causará overflow
+        je str_to_long_check_last_digit
+        
+        # Multiplica o resultado anterior por 10 e adiciona ao novo dígito
+        imulq $10, %r13                                 # r13 = r13 * 10
+        addq %rax, %r13                                 # r13 = r13 + novo_dígito
+        
+        incq %r12                                       # próximo caractere
+        jmp str_to_long_convert_loop
+    
+    str_to_long_check_last_digit:
+        # Verifica se o último dígito causará overflow
+        # Para positivo: último dígito deve ser <= 7 (9223372036854775807)
+        # Para negativo: último dígito deve ser <= 8 (9223372036854775808)
+        testq %r14, %r14                                # verifica se é negativo
+        jnz str_to_long_check_negative_digit
+        
+        # Positivo: último dígito deve ser <= 7
+        cmpq $7, %rax
+        jg str_to_long_overflow
+        jmp str_to_long_multiply_and_add
+        
+    str_to_long_check_negative_digit:
+        # Negativo: último dígito deve ser <= 8
+        cmpq $8, %rax
+        jg str_to_long_overflow
+        
+    str_to_long_multiply_and_add:
+        # Multiplica o resultado anterior por 10 e adiciona ao novo dígito
+        imulq $10, %r13                                 # r13 = r13 * 10
+        addq %rax, %r13                                 # r13 = r13 + novo_dígito
+        
+        incq %r12                                       # próximo caractere
+        jmp str_to_long_convert_loop
+    
+    str_to_long_done:
+        # Aplica o sinal se necessário
+        testq %r14, %r14                                # verifica se é negativo
+        jz str_to_long_apply_result                     # se positivo, vai direto
+        
+        negq %r13                                       # aplica o sinal negativo
+        
+    str_to_long_apply_result:
+        movq %r13, %rax                                 # retorna o resultado
+        jmp str_to_long_exit
+    
+    str_to_long_null:
+        # Retorna 0 se ponteiro for NULL
+        movq $0, %rax
+        jmp str_to_long_exit
+        
+    str_to_long_empty:
+        # Retorna 0 se string for vazia
+        movq $0, %rax
+        jmp str_to_long_exit
+        
+    str_to_long_overflow:
+        # Em caso de overflow, retorna o valor limite apropriado
+        testq %r14, %r14                                # verifica sinal
+        jz str_to_long_max_positive
+        
+        # Overflow negativo: retorna -9223372036854775808
+        movq $-9223372036854775808, %rax
+        jmp str_to_long_exit
+        
+    str_to_long_max_positive:
+        # Overflow positivo: retorna 9223372036854775807
+        movq $9223372036854775807, %rax
+        jmp str_to_long_exit
+    
+    str_to_long_exit:
+        # Restaura registradores preservados
+        popq %r15
+        popq %r14
+        popq %r13
+        popq %r12
+        popq %rbp
+        ret
 
 _str_to_float:
-    # TODO: Implementar conversão string para float (usar registradores XMM)
     # Entrada: %rdi = ponteiro para string
-    # Saída: %xmm0 = valor float convertido
-    xorps %xmm0, %xmm0
-    ret
+    # Saída: %xmm0 = valor float convertido, %rax = número de caracteres consumidos
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Preserva os registradores que serão utilizados
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+    
+    # Verifica se o ponteiro é válido (não NULL)
+    testq %rdi, %rdi
+    jz str_to_float_null
+    
+    # Inicialização das variáveis
+    movq %rdi, %r12                                     # ponteiro para a string (início)
+    pushq %rdi                                          # salva ponteiro inicial na stack
+    movq $0, %r13                                       # parte inteira acumulada
+    movq $0, %r14                                       # flag de sinal (0=positivo, 1=negativo)
+    movq $0, %r15                                       # contador de dígitos após o ponto decimal
+    
+    # Inicializa registradores XMM
+    xorps %xmm0, %xmm0                                  # resultado final = 0.0
+    xorps %xmm1, %xmm1                                  # parte fracionária = 0.0
+    movss .LC_ten_float(%rip), %xmm2                    # constante 10.0
+    movss .LC_one_float(%rip), %xmm3                    # divisor para parte fracionária = 1.0
+    
+    # Verifica se o primeiro caractere é um sinal
+    movb (%r12), %al                                    # carrega o primeiro caractere
+    testb %al, %al                                      # verifica se chegou no final da string
+    jz str_to_float_empty
+    
+    cmpb $'-', %al                                      # verifica se o sinal é negativo
+    je str_to_float_negative
+
+    cmpb $'+', %al                                      # verifica se o sinal é positivo
+    je str_to_float_positive
+    
+    # Se não há sinal, começa a conversão diretamente
+    jmp str_to_float_convert_integer
+    
+    str_to_float_negative:
+        movq $1, %r14                                   # marca como negativo
+        incq %r12                                       # pula o sinal '-'
+        jmp str_to_float_convert_integer
+        
+    str_to_float_positive:
+        incq %r12                                       # pula o sinal '+'
+        jmp str_to_float_convert_integer
+    
+    str_to_float_convert_integer:
+        # Converte a parte inteira
+        movb (%r12), %al                                # carrega o caractere atual
+        testb %al, %al                                  # verifica se é o fim da string
+        jz str_to_float_combine_parts                   # CORREÇÃO: vai para combine_parts, não done
+        
+        # Verifica se encontrou o ponto decimal
+        cmpb $'.', %al
+        je str_to_float_decimal_point
+        
+        # Verifica se é um dígito válido
+        cmpb $'0', %al
+        jb str_to_float_combine_parts                   # CORREÇÃO: vai para combine_parts, não done
+        cmpb $'9', %al
+        ja str_to_float_combine_parts                   # CORREÇÃO: vai para combine_parts, não done
+        
+        # Converte caractere para dígito numérico
+        subb $'0', %al                                  # converte ASCII para número
+        movzbq %al, %rax                                # zero-extend para 64 bits
+        
+        # Multiplica a parte inteira por 10 e adiciona o novo dígito
+        imulq $10, %r13                                 # r13 = r13 * 10
+        addq %rax, %r13                                 # r13 = r13 + novo_dígito
+        
+        # Overflow check removido
+        
+        incq %r12                                       # próximo caractere
+        jmp str_to_float_convert_integer
+    
+    str_to_float_decimal_point:
+        incq %r12                                       # pula o ponto decimal
+        jmp str_to_float_convert_fractional
+    
+    str_to_float_convert_fractional:
+        # Converte a parte fracionária
+        movb (%r12), %al                                # carrega o caractere atual
+        testb %al, %al                                  # verifica se é o fim da string
+        jz str_to_float_combine_parts
+        
+        # Verifica se é um dígito válido
+        cmpb $'0', %al
+        jb str_to_float_combine_parts                   # se for menor que '0', para
+
+        cmpb $'9', %al
+        ja str_to_float_combine_parts                   # se for maior que '9', para
+        
+        # Limita a 6 dígitos de precisão para float, mas ainda avança o ponteiro
+        cmpq $6, %r15
+        jge str_to_float_skip_remaining_digits
+        
+        # Converte caractere para dígito numérico
+        subb $'0', %al                                  # converte ASCII para número
+        movzbq %al, %rax                                # zero-extend para 64 bits
+        
+        # Converte dígito para float e adiciona à parte fracionária
+        cvtsi2ss %rax, %xmm4                            # converte dígito para float
+        
+        # Multiplica o divisor por 10 para a próxima casa decimal
+        mulss %xmm2, %xmm3                              # xmm3 = xmm3 * 10.0
+        
+        # Divide o dígito pelo divisor e adiciona à parte fracionária
+        divss %xmm3, %xmm4                              # xmm4 = dígito / divisor
+        addss %xmm4, %xmm1                              # adiciona à parte fracionária
+        
+        incq %r15                                       # incrementa contador de dígitos fracionários
+        
+    str_to_float_advance_pointer:
+        incq %r12                                       # próximo caractere
+        jmp str_to_float_convert_fractional
+        
+    str_to_float_skip_remaining_digits:
+        # Pula dígitos restantes sem processar (mantém precisão de 6 dígitos)
+        incq %r12                                       # próximo caractere
+        jmp str_to_float_convert_fractional
+    
+    str_to_float_combine_parts:
+        # Combina parte inteira e fracionária
+        cvtsi2ss %r13, %xmm0                            # converte parte inteira para float
+        addss %xmm1, %xmm0                              # adiciona parte fracionária
+
+        # Aplica o sinal se necessário
+        testq %r14, %r14                                # verifica se é negativo
+        jz str_to_float_done                            # se positivo, termina
+        
+        # Aplica sinal negativo
+        movss .LC_neg_one_float(%rip), %xmm5            # carrega -1.0
+        mulss %xmm5, %xmm0                              # xmm0 = xmm0 * (-1.0)
+        
+        jmp str_to_float_done
+    
+    str_to_float_null:
+        # Retorna 0.0 se ponteiro for NULL
+        xorps %xmm0, %xmm0
+        jmp str_to_float_done
+        
+    str_to_float_empty:
+        # Retorna 0.0 se string for vazia
+        xorps %xmm0, %xmm0
+        jmp str_to_float_done
+        
+    str_to_float_overflow:
+        # Em caso de overflow, retorna valor limite apropriado
+        testq %r14, %r14                                # verifica sinal
+        jz str_to_float_max_positive
+        
+        # Overflow negativo: retorna um valor grande negativo
+        movss .LC_neg_one_float(%rip), %xmm0
+        movss .LC_ten_float(%rip), %xmm4
+        mulss %xmm4, %xmm0                              # -10.0
+        mulss %xmm4, %xmm0                              # -100.0
+        mulss %xmm4, %xmm0                              # -1000.0
+        mulss %xmm4, %xmm0                              # -10000.0
+        mulss %xmm4, %xmm0                              # -100000.0
+        mulss %xmm4, %xmm0                              # -1000000.0
+        jmp str_to_float_done
+        
+    str_to_float_max_positive:
+        # Overflow positivo: retorna um valor grande positivo
+        movss .LC_one_float(%rip), %xmm0
+        movss .LC_ten_float(%rip), %xmm4
+        mulss %xmm4, %xmm0                              # 10.0
+        mulss %xmm4, %xmm0                              # 100.0
+        mulss %xmm4, %xmm0                              # 1000.0
+        mulss %xmm4, %xmm0                              # 10000.0
+        mulss %xmm4, %xmm0                              # 100000.0
+        mulss %xmm4, %xmm0                              # 1000000.0
+        jmp str_to_float_done
+    
+    str_to_float_done:
+        # Calcula quantos caracteres foram consumidos
+        movq %r12, %rax                                 # ponteiro atual
+        popq %rdx                                       # recupera ponteiro inicial da stack
+        subq %rdx, %rax                                 # rax = caracteres consumidos
+        
+        # Restaura registradores preservados
+        popq %r15
+        popq %r14
+        popq %r13
+        popq %r12
+        popq %rbp
+        ret
 
 _str_to_double:
-    # TODO: Implementar conversão string para double (usar registradores XMM)
     # Entrada: %rdi = ponteiro para string
-    # Saída: %xmm0 = valor double convertido
-    xorpd %xmm0, %xmm0
-    ret
+    # Saída: %xmm0 = valor double convertido, %rax = número de caracteres consumidos
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Preserva os registradores que serão utilizados
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+    
+    # Verifica se o ponteiro é válido (não NULL)
+    testq %rdi, %rdi
+    jz str_to_double_null
+    
+    # Inicialização das variáveis
+    movq %rdi, %r12                                     # ponteiro para a string (início)
+    pushq %rdi                                          # salva ponteiro inicial na stack
+    movq $0, %r13                                       # parte inteira acumulada
+    movq $0, %r14                                       # flag de sinal (0=positivo, 1=negativo)
+    movq $0, %r15                                       # contador de dígitos após o ponto decimal
+    
+    # Inicializa registradores XMM para double
+    xorpd %xmm0, %xmm0                                  # resultado final = 0.0
+    xorpd %xmm1, %xmm1                                  # parte fracionária = 0.0
+    movsd .LC_ten_double(%rip), %xmm2                   # constante 10.0
+    movsd .LC_one_double(%rip), %xmm3                   # divisor para parte fracionária = 1.0
+    
+    # Verifica se o primeiro caractere é um sinal
+    movb (%r12), %al                                    # carrega o primeiro caractere
+    testb %al, %al                                      # verifica se chegou no final da string
+    jz str_to_double_empty
+    
+    cmpb $'-', %al                                      # verifica se o sinal é negativo
+    je str_to_double_negative
+
+    cmpb $'+', %al                                      # verifica se o sinal é positivo
+    je str_to_double_positive
+    
+    # Se não há sinal, começa a conversão diretamente
+    jmp str_to_double_convert_integer
+    
+    str_to_double_negative:
+        movq $1, %r14                                   # marca como negativo
+        incq %r12                                       # pula o sinal '-'
+        jmp str_to_double_convert_integer
+        
+    str_to_double_positive:
+        incq %r12                                       # pula o sinal '+'
+        jmp str_to_double_convert_integer
+    
+    str_to_double_convert_integer:
+        # Converte a parte inteira
+        movb (%r12), %al                                # carrega o caractere atual
+        testb %al, %al                                  # verifica se é o fim da string
+        jz str_to_double_combine_parts                  # CORREÇÃO: vai para combine_parts, não done
+        
+        # Verifica se encontrou o ponto decimal
+        cmpb $'.', %al
+        je str_to_double_decimal_point
+        
+        # Verifica se é um dígito válido
+        cmpb $'0', %al
+        jb str_to_double_combine_parts                  # CORREÇÃO: vai para combine_parts, não done
+        cmpb $'9', %al
+        ja str_to_double_combine_parts                  # CORREÇÃO: vai para combine_parts, não done
+        
+        # Converte caractere para dígito numérico
+        subb $'0', %al                                  # converte ASCII para número
+        movzbq %al, %rax                                # zero-extend para 64 bits
+        
+        # Multiplica a parte inteira por 10 e adiciona o novo dígito
+        imulq $10, %r13                                 # r13 = r13 * 10
+        addq %rax, %r13                                 # r13 = r13 + novo_dígito
+        
+        # Verifica overflow para a parte inteira (limita a 18 dígitos para double)
+        movq $999999999999999999, %rdx                  # limite seguro para double (18 dígitos)
+        cmpq %rdx, %r13                                 # verifica se excede limite seguro
+        jg str_to_double_overflow
+        
+        incq %r12                                       # próximo caractere
+        jmp str_to_double_convert_integer
+    
+    str_to_double_decimal_point:
+        incq %r12                                       # pula o ponto decimal
+        jmp str_to_double_convert_fractional
+    
+    str_to_double_convert_fractional:
+        # Converte a parte fracionária
+        movb (%r12), %al                                # carrega o caractere atual
+        testb %al, %al                                  # verifica se é o fim da string
+        jz str_to_double_combine_parts
+        
+        # Verifica se é um dígito válido
+        cmpb $'0', %al
+        jb str_to_double_combine_parts                  # se for menor que '0', para
+        cmpb $'9', %al
+        ja str_to_double_combine_parts                  # se for maior que '9', para
+        
+        # Limita a 15 dígitos de precisão para double, mas ainda avança o ponteiro
+        cmpq $15, %r15
+        jge str_to_double_skip_remaining_digits
+        
+        # Converte caractere para dígito numérico
+        subb $'0', %al                                  # converte ASCII para número
+        movzbq %al, %rax                                # zero-extend para 64 bits
+        
+        # Converte dígito para double e adiciona à parte fracionária
+        cvtsi2sd %rax, %xmm4                            # converte dígito para double
+        
+        # Multiplica o divisor por 10 para a próxima casa decimal
+        mulsd %xmm2, %xmm3                              # xmm3 = xmm3 * 10.0
+        
+        # Divide o dígito pelo divisor e adiciona à parte fracionária
+        divsd %xmm3, %xmm4                              # xmm4 = dígito / divisor
+        addsd %xmm4, %xmm1                              # adiciona à parte fracionária
+        
+        incq %r15                                       # incrementa o contador de dígitos fracionários
+        
+    str_to_double_advance_pointer:
+        incq %r12                                       # próximo caractere
+        jmp str_to_double_convert_fractional
+        
+    str_to_double_skip_remaining_digits:
+        # Pula dígitos restantes sem processar (mantém precisão de 15 dígitos)
+        incq %r12                                       # próximo caractere
+        jmp str_to_double_convert_fractional
+    
+    str_to_double_combine_parts:
+        # Combina parte inteira e fracionária
+        cvtsi2sd %r13, %xmm0                            # converte parte inteira para double
+        addsd %xmm1, %xmm0                              # adiciona parte fracionária
+        
+        # Aplica o sinal se necessário
+        testq %r14, %r14                                # verifica se é negativo
+        jz str_to_double_done                           # se positivo, termina
+        
+        # Aplica sinal negativo
+        movsd .LC_neg_one_double(%rip), %xmm5           # carrega -1.0
+        mulsd %xmm5, %xmm0                              # xmm0 = xmm0 * (-1.0)
+        
+        jmp str_to_double_done
+    
+    str_to_double_null:
+        # Retorna 0.0 se ponteiro for NULL
+        xorpd %xmm0, %xmm0
+        jmp str_to_double_done
+        
+    str_to_double_empty:
+        # Retorna 0.0 se string for vazia
+        xorpd %xmm0, %xmm0
+        jmp str_to_double_done
+        
+    str_to_double_overflow:
+        # Em caso de overflow, retorna valor limite apropriado
+        testq %r14, %r14                                # verifica sinal
+        jz str_to_double_max_positive
+        
+        # Overflow negativo: retorna um valor grande negativo
+        movsd .LC_neg_one_double(%rip), %xmm0
+        movsd .LC_ten_double(%rip), %xmm4
+        mulsd %xmm4, %xmm0                              # -10.0
+        mulsd %xmm4, %xmm0                              # -100.0
+        mulsd %xmm4, %xmm0                              # -1000.0
+        mulsd %xmm4, %xmm0                              # -10000.0
+        mulsd %xmm4, %xmm0                              # -100000.0
+        mulsd %xmm4, %xmm0                              # -1000000.0
+        mulsd %xmm4, %xmm0                              # -10000000.0
+        mulsd %xmm4, %xmm0                              # -100000000.0
+        mulsd %xmm4, %xmm0                              # -1000000000.0
+        mulsd %xmm4, %xmm0                              # -10000000000.0
+        mulsd %xmm4, %xmm0                              # -100000000000.0
+        mulsd %xmm4, %xmm0                              # -1000000000000.0
+        mulsd %xmm4, %xmm0                              # -10000000000000.0
+        mulsd %xmm4, %xmm0                              # -100000000000000.0
+        mulsd %xmm4, %xmm0                              # -1000000000000000.0
+        jmp str_to_double_done
+        
+    str_to_double_max_positive:
+        # Overflow positivo: retorna um valor grande positivo
+        movsd .LC_one_double(%rip), %xmm0
+        movsd .LC_ten_double(%rip), %xmm4
+        mulsd %xmm4, %xmm0                              # 10.0
+        mulsd %xmm4, %xmm0                              # 100.0
+        mulsd %xmm4, %xmm0                              # 1000.0
+        mulsd %xmm4, %xmm0                              # 10000.0
+        mulsd %xmm4, %xmm0                              # 100000.0
+        mulsd %xmm4, %xmm0                              # 1000000.0
+        mulsd %xmm4, %xmm0                              # 10000000.0
+        mulsd %xmm4, %xmm0                              # 100000000.0
+        mulsd %xmm4, %xmm0                              # 1000000000.0
+        mulsd %xmm4, %xmm0                              # 10000000000.0
+        mulsd %xmm4, %xmm0                              # 100000000000.0
+        mulsd %xmm4, %xmm0                              # 1000000000000.0
+        mulsd %xmm4, %xmm0                              # 10000000000000.0
+        mulsd %xmm4, %xmm0                              # 100000000000000.0
+        mulsd %xmm4, %xmm0                              # 1000000000000000.0
+        jmp str_to_double_done
+    
+    str_to_double_done:
+        # Calcula quantos caracteres foram consumidos
+        movq %r12, %rax                                 # ponteiro atual
+        popq %rdx                                       # recupera ponteiro inicial da stack
+        subq %rdx, %rax                                 # rax = caracteres consumidos
+        
+        # Restaura registradores preservados
+        popq %r15
+        popq %r14
+        popq %r13
+        popq %r12
+        popq %rbp
+        ret
 
 # ######################################################################################################
 # FUNÇÕES DE CONVERSÃO TYPE-TO-STRING
@@ -902,7 +2077,7 @@ _float_to_str:
     float_frac_loop:
         # Verifica se ainda há dígitos fracionários para processar
         testl %ecx, %ecx                                # testa se o contador é zero
-        jz float_str_done                           # termina se processou todos os dígitos
+        jz float_str_done                               # termina se processou todos os dígitos
         
         # Multiplicar parte fracionária por 10 para extrair próximo dígito
         movsd .LC_ten_double(%rip), %xmm4               # carrega constante 10.0 em double
@@ -913,10 +2088,12 @@ _float_to_str:
         cmpq $9, %rax                                   # verifica se é > 9
         jle float_digit_ok                              # se <= 9, está ok
         movq $9, %rax                                   # limita a 9
+    
     float_digit_ok:
         cmpq $0, %rax                                   # verifica se é < 0
         jge float_digit_valid                           # se >= 0, está ok
         movq $0, %rax                                   # limita a 0
+    
     float_digit_valid:
         addb $'0', %al                                  # converte o dígito numérico para caractere ASCII
         movb %al, (%r13)                                # armazena o dígito no buffer
@@ -986,13 +2163,13 @@ _double_to_str:
         cvttsd2si %xmm0, %r15                           # trunca para inteiro (parte inteira)
         
         # Verificar overflow - se o valor for muito grande, usar valor máximo seguro
-        movq $999999999999, %rax                        # limite máximo seguro para double
+        movq $999999999999999999, %rax                  # limite máximo seguro para double (18 dígitos)
         cmpq %rax, %r15                                 # compara com o limite
         jle double_int_ok                               # se <= limite, está ok
         movq %rax, %r15                                 # usa o limite máximo
         
         double_int_ok:
-            movq $-999999999999, %rax                       # limite mínimo seguro para double
+            movq $-999999999999999999, %rax                 # limite mínimo seguro para double (18 dígitos)
             cmpq %rax, %r15                                 # compara com o limite
             jge double_int_valid                            # se >= limite, está ok
             movq %rax, %r15                                 # usa o limite mínimo
@@ -1031,7 +2208,7 @@ _double_to_str:
         cmpq $9, %rax                                   # verifica se é > 9
         jle double_digit_ok                             # se <= 9, está ok
         movq $9, %rax                                   # limita a 9
-   
+        
     double_digit_ok:
         cmpq $0, %rax                                   # verifica se é < 0
         jge double_digit_valid                          # se >= 0, está ok
@@ -1067,102 +2244,158 @@ _double_to_str:
         ret
 
 # ######################################################################################################
-# OUTRAS FUNÇÕES AUXILIARES
+# FUNÇÕES AUXILIARES
 # ######################################################################################################
 
 # Função auxiliar para obter o próximo argumento de printf
 _get_next_printf_arg:
-    incl -56(%rbp)                                      # incrementar primeiro
-    movl -56(%rbp), %eax                                # obter o índice do argumento atual
-
-    cmpl $1, %eax
-    je get_printf_arg1
+    # Incrementa primeiro o índice de argumentos
+    incl -56(%rbp)                                      # incrementa arg_index
+    movl -56(%rbp), %eax                                # carrega o índice atual
     
-    cmpl $2, %eax
-    je get_printf_arg2
+    # Verifica se é um argumento inválido (0 ou negativo)
+    testl %eax, %eax
+    jle printf_arg_invalid
     
-    cmpl $3, %eax
-    je get_printf_arg3
-    
-    cmpl $4, %eax
-    je get_printf_arg4
-    
+    # Argumentos 1-5: Salvos em posições fixas no stack frame local
     cmpl $5, %eax
-    je get_printf_arg5
+    jle printf_get_register_arg
     
-    cmpl $6, %eax
-    je get_printf_arg6
+    # Argumentos 6+: Acessados da stack do caller
+    jmp printf_get_stack_arg
     
-    cmpl $7, %eax
-    je get_printf_arg7
+    printf_get_register_arg:
+        # Argumentos salvos em: arg1=-16(%rbp), arg2=-24(%rbp), arg3=-32(%rbp), arg4=-40(%rbp), arg5=-48(%rbp)
+        # Fórmula: offset = -16 + (arg_index-1) * (-8) = -16 - 8*(eax-1) = -8 - 8*eax
+        movl %eax, %ecx                                 # copia índice
+        imull $8, %ecx                                  # multiplica por 8
+        addl $8, %ecx                                   # ajusta para -8-8*eax
+        negl %ecx                                       # torna negativo
+        movslq %ecx, %rcx                               # extende para 64-bit
+        movq (%rbp,%rcx), %rax                          # carrega: rbp + offset
+        ret
     
-    cmpl $8, %eax
-    je get_printf_arg8
+    printf_get_stack_arg:
+        # Argumentos na stack caller: arg6=16(%rbp), arg7=24(%rbp), arg8=32(%rbp), ...
+        # Fórmula: offset = 16 + (arg_index-6) * 8 = 16 + 8*eax - 48 = 8*eax - 32
+        movl %eax, %ecx                                 # copia índice  
+        imull $8, %ecx                                  # multiplica por 8
+        subl $32, %ecx                                  # subtrai 32 (8*eax - 32)
+        movslq %ecx, %rcx                               # extende para 64-bit
+        movq (%rbp,%rcx), %rax                          # carrega: rbp + offset
+        ret
     
-    cmpl $9, %eax
-    je get_printf_arg9
+    printf_arg_invalid:
+        # Retorna 0 para argumentos inválidos
+        movq $0, %rax
+        ret
     
-    cmpl $10, %eax
-    je get_printf_arg10
+# Função auxiliar para obter o próximo argumento de scanf
+_get_next_scanf_arg:
+    # Incrementa primeiro o índice de argumentos
+    incl -56(%rbp)                                      # incrementa arg_index
+    movl -56(%rbp), %eax                                # carrega o índice atual
     
-    cmpl $11, %eax
-    je get_printf_arg11
+    # Verifica se é um argumento inválido (0 ou negativo)
+    testl %eax, %eax
+    jle scanf_arg_invalid
     
-    cmpl $12, %eax
-    je get_printf_arg12
+    # Argumentos 1-5: Salvos em posições fixas no stack frame local
+    cmpl $5, %eax
+    jle scanf_get_register_arg
     
-    # Default - retornar 0
-    movq $0, %rax
-    ret
+    # Argumentos 6+: Acessados da stack do caller
+    jmp scanf_get_stack_arg
     
-    get_printf_arg1:
-        movq -16(%rbp), %rax
+    scanf_get_register_arg:
+        # Argumentos salvos em: arg1=-16(%rbp), arg2=-24(%rbp), arg3=-32(%rbp), arg4=-40(%rbp), arg5=-48(%rbp)
+        # Fórmula: offset = -8 - 8*arg_index
+        movl %eax, %ecx                                 # copia índice
+        imull $8, %ecx                                  # multiplica por 8
+        addl $8, %ecx                                   # ajusta para -8-8*eax
+        negl %ecx                                       # torna negativo
+        movslq %ecx, %rcx                               # extende para 64-bit
+        movq (%rbp,%rcx), %rax                          # carrega: rbp + offset
+        ret
+    
+    scanf_get_stack_arg:
+        # Argumentos na stack caller: arg6=16(%rbp), arg7=24(%rbp), arg8=32(%rbp), ...
+        # Fórmula: offset = 8*arg_index - 32
+        movl %eax, %ecx                                 # copia índice  
+        imull $8, %ecx                                  # multiplica por 8
+        subl $32, %ecx                                  # subtrai 32 (8*eax - 32)
+        movslq %ecx, %rcx                               # extende para 64-bit
+        movq (%rbp,%rcx), %rax                          # carrega: rbp + offset
+        ret
+    
+    scanf_arg_invalid:
+        # Retorna NULL para argumentos inválidos
+        movq $0, %rax
         ret
 
-    get_printf_arg2:
-        movq -24(%rbp), %rax
+# Função auxiliar para pular espaços em branco no buffer de entrada
+_skip_whitespace:
+    pushq %rax
+    
+    skip_whitespace_loop:
+        movb (%r13), %al                                # carrega caractere atual
+        
+        testb %al, %al                                  # verifica se é fim da string
+        jz skip_whitespace_done
+        
+        cmpb $' ', %al                                  # verifica se é espaço
+        je skip_whitespace_next
+        
+        cmpb $'\t', %al                                 # verifica se é tab
+        je skip_whitespace_next
+        
+        cmpb $'\n', %al                                 # verifica se é newline
+        je skip_whitespace_next
+        
+        cmpb $'\r', %al                                 # verifica se é carriage return
+        je skip_whitespace_next
+        
+        jmp skip_whitespace_done                        # não é espaço em branco, para
+    
+    skip_whitespace_next:
+        incq %r13                                       # avança para próximo caractere
+        incq input_position(%rip)                       # atualiza posição global
+        jmp skip_whitespace_loop
+
+    skip_whitespace_done:
+        popq %rax
         ret
 
-    get_printf_arg3:
-        movq -32(%rbp), %rax
-        ret
-
-    get_printf_arg4:
-        movq -40(%rbp), %rax
-        ret
-
-    get_printf_arg5:
-        movq -48(%rbp), %rax
-        ret
+# Função auxiliar para pular número no buffer de entrada (TODO: implementar)
+_skip_number_in_buffer:
+    # TODO: Implementar função para avançar buffer após ler um número
+    # Por enquanto, implementação simplificada que pula até espaço ou fim
+    pushq %rax
+    skip_number_loop:
+        movb (%r13), %al                                # carrega caractere atual
         
-    get_printf_arg6:
-        # Argumentos 6+ estão na stack, precisamos acessá-los
-        # Stack frame: rbp+16 é o primeiro argumento na stack (após return address e saved rbp)
-        movq 16(%rbp), %rax
-        ret
+        testb %al, %al                                  # verifica se é fim da string
+        jz skip_number_done
         
-    get_printf_arg7:
-        movq 24(%rbp), %rax
-        ret
+        cmpb $' ', %al                                  # verifica se é espaço
+        je skip_number_done
         
-    get_printf_arg8:
-        movq 32(%rbp), %rax
-        ret
+        cmpb $'\t', %al                                 # verifica se é tab
+        je skip_number_done
         
-    get_printf_arg9:
-        movq 40(%rbp), %rax
-        ret
+        cmpb $'\n', %al                                 # verifica se é newline
+        je skip_number_done
         
-    get_printf_arg10:
-        movq 48(%rbp), %rax
-        ret
+        cmpb $'\r', %al                                 # verifica se é carriage return
+        je skip_number_done
         
-    get_printf_arg11:
-        movq 56(%rbp), %rax
-        ret
+        incq %r13                                       # avança para próximo caractere
+        incq input_position(%rip)                       # atualiza posição global
         
-    get_printf_arg12:
-        movq 64(%rbp), %rax
+        jmp skip_number_loop
+    
+    skip_number_done:
+        popq %rax
         ret
 
 # ######################################################################################################
@@ -1173,49 +2406,7 @@ _test_printf_all_types:
     movq %rsp, %rbp
     
     # Imprime cabeçalho dos testes de valores extremos
-    leaq min_max_header(%rip), %rdi
-    call _printf
-    
-    # |---------------------------------------------|
-    # |             VALORES MÍNIMOS                |
-    # |---------------------------------------------|
-    
-    # Imprime cabeçalho dos valores mínimos
-    leaq min_header(%rip), %rdi
-    call _printf
-    
-    # Teste MIN 1: Char MIN (-128)
-    leaq format_char_min(%rip), %rdi
-    movb test_char_min(%rip), %sil                      # Carrega char mínimo como segundo argumento
-    movb test_char_min(%rip), %dl                       # Carrega valor numérico para mostrar (sign extended)
-    movsbq %dl, %rdx                                    # Sign extend byte to quad word
-    call _printf
-    
-    # Teste MIN 2: Short MIN (-32768)
-    leaq format_short_min(%rip), %rdi
-    movswq test_short_min(%rip), %rsi                   # Carrega short mínimo
-    call _printf
-    
-    # Teste MIN 3: Int MIN (-2147483648)
-    leaq format_int_min(%rip), %rdi
-    movslq test_int_min(%rip), %rsi                     # Carrega int mínimo
-    call _printf
-    
-    # Teste MIN 4: Long MIN (-9223372036854775808)
-    leaq format_long_min(%rip), %rdi
-    movq test_long_min(%rip), %rsi                      # Carrega long mínimo
-    call _printf
-    
-    # Teste MIN 5: Float MIN (-3.4028235e+38)
-    leaq format_float_min(%rip), %rdi
-    movss test_float_min(%rip), %xmm0                   # Carrega float mínimo em XMM0
-    movl test_float_min(%rip), %esi                     # Também carrega como argumento inteiro
-    call _printf
-    
-    # Teste MIN 6: Double MIN (-1.7976931348623157e+308)
-    leaq format_double_min(%rip), %rdi
-    movsd test_double_min(%rip), %xmm0                  # Carrega double mínimo em XMM0
-    movq test_double_min(%rip), %rsi                    # Também carrega como argumento inteiro
+    leaq printf_test_header(%rip), %rdi
     call _printf
     
     # |---------------------------------------------|
@@ -1260,6 +2451,48 @@ _test_printf_all_types:
     movq test_double_max(%rip), %rsi                    # Também carrega como argumento inteiro
     call _printf
     
+    # |---------------------------------------------|
+    # |             VALORES MÍNIMOS                |
+    # |---------------------------------------------|
+    
+    # Imprime cabeçalho dos valores mínimos
+    leaq min_header(%rip), %rdi
+    call _printf
+    
+    # Teste MIN 1: Char MIN (-128)
+    leaq format_char_min(%rip), %rdi
+    movb test_char_min(%rip), %sil                      # Carrega char mínimo como segundo argumento
+    movb test_char_min(%rip), %dl                       # Carrega valor numérico para mostrar (sign extended)
+    movsbq %dl, %rdx                                    # Sign extend byte to quad word
+    call _printf
+    
+    # Teste MIN 2: Short MIN (-32768)
+    leaq format_short_min(%rip), %rdi
+    movswq test_short_min(%rip), %rsi                   # Carrega short mínimo
+    call _printf
+    
+    # Teste MIN 3: Int MIN (-2147483648)
+    leaq format_int_min(%rip), %rdi
+    movslq test_int_min(%rip), %rsi                     # Carrega int mínimo
+    call _printf
+    
+    # Teste MIN 4: Long MIN (-9223372036854775808)
+    leaq format_long_min(%rip), %rdi
+    movq test_long_min(%rip), %rsi                      # Carrega long mínimo
+    call _printf
+    
+    # Teste MIN 5: Float MIN (-3.4028235e+38)
+    leaq format_float_min(%rip), %rdi
+    movss test_float_min(%rip), %xmm0                   # Carrega float mínimo em XMM0
+    movl test_float_min(%rip), %esi                     # Também carrega como argumento inteiro
+    call _printf
+    
+    # Teste MIN 6: Double MIN (-1.7976931348623157e+308)
+    leaq format_double_min(%rip), %rdi
+    movsd test_double_min(%rip), %xmm0                  # Carrega double mínimo em XMM0
+    movq test_double_min(%rip), %rsi                    # Também carrega como argumento inteiro
+    call _printf
+
     # |---------------------------------------------|
     # |         TESTE ÚNICO COM UMA CHAMADA         |
     # |---------------------------------------------|
@@ -1321,18 +2554,177 @@ _test_printf_all_types:
 # FUNÇÃO PRINCIPAL - MAIN
 # ######################################################################################################
 
+# Função principal para testar as implementações
 _main:
-    # Função principal para testar as implementações
     pushq %rbp
     movq %rsp, %rbp
+
+    # |---------------------------------------------|
+    # |               _PRINTF - TESTE               |
+    # |---------------------------------------------|
+    # call _test_printf_all_types
     
     # |---------------------------------------------|
-    # |         TESTES DA FUNÇÃO PRINTF             |
+    # |               _SCANF - TESTE                |
     # |---------------------------------------------|
-    # Chama a função de teste completa (individual + teste único)
-    call _test_printf_all_types
+
+    leaq scanf_test_header(%rip), %rdi
+    call _printf
+
+    # Teste 1: lendo cada tipo um por vez (vários scanfs)
+
+    # echo -e "a\n-32767\n2147483647\n-9223372036854775807\n-999999.999999\n-123456789.123456789" | ./lib_c
+    # echo -e "Z\n32767\n2147483647\n9223372036854775807\n123456789.123456\n123456789012345.123456789" | ./lib_c
+
     
-    # Restaura o stack frame antes de sair
+    # Teste para ler um char
+    /*leaq scanf_char_prompt(%rip), %rdi
+    call _printf
+    leaq scanf_char_format(%rip), %rdi
+    leaq char_input(%rip), %rsi
+    call _scanf
+    leaq scanf_char_result(%rip), %rdi
+    movzbq char_input(%rip), %rsi
+    movzbq char_input(%rip), %rdx
+    call _printf
+
+    # Teste para ler um short
+    leaq scanf_short_prompt(%rip), %rdi
+    call _printf
+    leaq scanf_short_format(%rip), %rdi
+    leaq short_input(%rip), %rsi
+    call _scanf
+    leaq scanf_short_result(%rip), %rdi
+    movswq short_input(%rip), %rsi
+    call _printf
+
+    # Teste para ler um int
+    leaq scanf_int_prompt(%rip), %rdi
+    call _printf
+    leaq scanf_int_format(%rip), %rdi
+    leaq int_input(%rip), %rsi
+    call _scanf
+    leaq scanf_int_result(%rip), %rdi
+    movslq int_input(%rip), %rsi
+    call _printf
+
+    # Teste para ler um long
+    leaq scanf_long_prompt(%rip), %rdi
+    call _printf
+    leaq scanf_long_format(%rip), %rdi
+    leaq long_input(%rip), %rsi
+    call _scanf
+    leaq scanf_long_result(%rip), %rdi
+    movq long_input(%rip), %rsi
+    call _printf
+
+    # Teste para ler um float
+    leaq scanf_float_prompt(%rip), %rdi
+    call _printf
+    leaq scanf_float_format(%rip), %rdi
+    leaq float_input(%rip), %rsi
+    call _scanf
+    leaq scanf_float_result(%rip), %rdi
+    movss float_input(%rip), %xmm0
+    movl float_input(%rip), %esi
+    call _printf
+
+    # Teste para ler um double
+    leaq scanf_double_prompt(%rip), %rdi
+    call _printf
+    leaq scanf_double_format(%rip), %rdi
+    leaq double_input(%rip), %rsi
+    call _scanf
+    leaq scanf_double_result(%rip), %rdi
+    movsd double_input(%rip), %xmm0
+    movq double_input(%rip), %rsi
+    call _printf
+    */
+
+    # Teste escalável: demonstração com 12 valores (mínimos e máximos para cada tipo)    
+    
+    # echo "B -32768 -2147483648 -9223372036854775808 -123456.123456 -123456789012345.123456789012345 Y 32767 2147483647 9223372036854775807 123456.123456 123456789012345.123456789012345" | ./lib_c
+
+    # Prompt para entrada dos 12 valores
+    leaq scanf_12_prompt(%rip), %rdi
+    call _printf
+    
+    # Scanf com 12 valores: %c %hd %d %ld %f %lf %c %hd %d %ld %f %lf
+    leaq scanf_12_format(%rip), %rdi         # Formato dos 12 valores
+    leaq char_input4(%rip), %rsi             # 1. Char MIN (-128)
+    leaq short_input3(%rip), %rdx            # 2. Short MIN (-32768)  
+    leaq int_input3(%rip), %rcx              # 3. Int MIN (-2147483648)
+    leaq long_input3(%rip), %r8              # 4. Long MIN (-9223372036854775808)
+    leaq float_input3(%rip), %r9             # 5. Float MIN (-999999.999999)
+    
+    # 6º-12º argumentos vão na stack (seguindo a convenção System V ABI)
+    pushq $0                                 # Padding para alinhamento se necessário
+    leaq double_input4(%rip), %rax           # 12. Double MAX
+    pushq %rax
+    leaq float_input4(%rip), %rax            # 11. Float MAX  
+    pushq %rax
+    leaq long_input4(%rip), %rax             # 10. Long MAX
+    pushq %rax
+    leaq int_input4(%rip), %rax              # 9. Int MAX
+    pushq %rax
+    leaq short_input4(%rip), %rax            # 8. Short MAX
+    pushq %rax
+    leaq char_input5(%rip), %rax             # 7. Char MAX
+    pushq %rax
+    leaq double_input3(%rip), %rax           # 6. Double MIN
+    pushq %rax
+    
+    call _scanf
+    
+    # Limpa a stack (7 pushes * 8 bytes = 56 bytes + padding)
+    addq $64, %rsp
+    
+    # Mostrar resultados dos 12 valores lidos
+    leaq scanf_12_result(%rip), %rdi         # String de formato dos resultados
+    
+    # Preparar argumentos para printf (os primeiros 5 em registradores)
+    movzbl char_input4(%rip), %esi           # 1. Char MIN (caractere)
+    movsbq char_input4(%rip), %rdx           # 2. Char MIN (valor numérico)
+    movswq short_input3(%rip), %rcx          # 3. Short MIN
+    movslq int_input3(%rip), %r8             # 4. Int MIN
+    movq long_input3(%rip), %r9              # 5. Long MIN
+    
+    # Os próximos argumentos vão na stack para printf
+    pushq $0                                 # Padding para alinhamento
+    movq double_input4(%rip), %rax           # 12. Double MAX
+    pushq %rax
+    movl float_input4(%rip), %eax            # 11. Float MAX como inteiro
+    pushq %rax
+    movq long_input4(%rip), %rax             # 10. Long MAX
+    pushq %rax
+    movslq int_input4(%rip), %rax            # 9. Int MAX
+    pushq %rax
+    movswq short_input4(%rip), %rax          # 8. Short MAX
+    pushq %rax
+    movsbq char_input5(%rip), %rax           # 7. Char MAX - valor numérico
+    pushq %rax
+    movzbl char_input5(%rip), %eax           # 7. Char MAX - caractere
+    pushq %rax
+    movq double_input3(%rip), %rax           # 6. Double MIN
+    pushq %rax
+    movl float_input3(%rip), %eax            # 5. Float MIN como inteiro
+    pushq %rax
+    
+    # Carrega valores float e double nos registradores XMM
+    movss float_input3(%rip), %xmm0          # Float MIN
+    movsd double_input3(%rip), %xmm1         # Double MIN
+    movss float_input4(%rip), %xmm2          # Float MAX
+    movsd double_input4(%rip), %xmm3         # Double MAX
+    
+    call _printf
+    
+    # Limpa a stack (9 pushes * 8 bytes = 72 bytes + padding)
+    addq $80, %rsp
+
+    # |---------------------------------------------|
+    # |               _FOPEN/CLOSE - TESTE          |
+    # |---------------------------------------------|
+
     popq %rbp
     
     # Saída normal do programa usando return (não syscall direto)
