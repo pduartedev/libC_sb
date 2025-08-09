@@ -348,11 +348,8 @@ DEMONSTRAÇÃO max: Char:%c Short:%hd Int:%d Long:%ld Float:%f Double:%lf
     .globl _get_next_scanf_arg                              # Obtém o próximo argumento para scanf
     .globl _skip_whitespace                                 # Pula espaços em branco, tabs e newlines
     .globl _skip_number_in_buffer                           # implementação básica para avançar buffer TODO: CORRIGIR!!!
-    .globl _parse_fopen_mode                                # Função auxiliar para parse do modo de fopen
-    .globl _find_free_file_slot                             # Encontra um slot livre na tabela de arquivos
 
     # FUNÇÕES DE TESTES
-    .globl _test_fopen_fclose                               # Test da função fopen/fclose
     .globl _test_printf_all_types                           # Test todos os valores da função printf
     .globl _test_scanf_all_types                            # Test todos os valroes da função scanf
 
@@ -934,23 +931,156 @@ _fopen:
     movq %r14, %rax
     jmp fopen_done
     
-    fopen_close_and_error:
-        # Fecha o arquivo já aberto e retorna erro
-        movq $SYS_CLOSE, %rax
-        movq %r15, %rdi
-        syscall
+fopen_close_and_error:
+    # Fecha o arquivo já aberto e retorna erro
+    movq $SYS_CLOSE, %rax
+    movq %r15, %rdi
+    syscall
     
-    fopen_error:
-        movq $0, %rax               # retorna NULL
+fopen_error:
+    movq $0, %rax               # retorna NULL
     
-    fopen_done:
-        # Restaura registradores
-        popq %r15
-        popq %r14
-        popq %r13
-        popq %r12
-        popq %rbp
-        ret
+fopen_done:
+    # Restaura registradores
+    popq %r15
+    popq %r14
+    popq %r13
+    popq %r12
+    popq %rbp
+    ret
+
+# Função auxiliar para parse do modo de fopen
+_parse_fopen_mode:
+    # Entrada: %rdi = string do modo
+    # Saída: %rax = flags do sistema (-1 se inválido)
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Verifica primeiro caractere
+    movb (%rdi), %al
+    
+    cmpb $'r', %al
+    je parse_mode_read
+    cmpb $'w', %al
+    je parse_mode_write
+    cmpb $'a', %al
+    je parse_mode_append
+    
+    # Modo inválido
+    movq $-1, %rax
+    jmp parse_mode_done
+    
+parse_mode_read:
+    # Verifica se é "r" ou "r+"
+    movb 1(%rdi), %al
+    testb %al, %al
+    jz parse_mode_read_only     # apenas "r"
+    
+    cmpb $'+', %al
+    je parse_mode_read_write    # "r+"
+    
+    # Caractere inválido após 'r'
+    movq $-1, %rax
+    jmp parse_mode_done
+    
+parse_mode_read_only:
+    movq $O_RDONLY, %rax
+    jmp parse_mode_done
+    
+parse_mode_read_write:
+    movq $O_RDWR, %rax
+    jmp parse_mode_done
+    
+parse_mode_write:
+    # Verifica se é "w" ou "w+"
+    movb 1(%rdi), %al
+    testb %al, %al
+    jz parse_mode_write_only    # apenas "w"
+    
+    cmpb $'+', %al
+    je parse_mode_write_read    # "w+"
+    
+    # Caractere inválido após 'w'
+    movq $-1, %rax
+    jmp parse_mode_done
+    
+parse_mode_write_only:
+    movq $O_WRONLY, %rax
+    orq $O_CREAT, %rax
+    orq $O_TRUNC, %rax
+    jmp parse_mode_done
+    
+parse_mode_write_read:
+    movq $O_RDWR, %rax
+    orq $O_CREAT, %rax
+    orq $O_TRUNC, %rax
+    jmp parse_mode_done
+    
+parse_mode_append:
+    # Verifica se é "a" ou "a+"
+    movb 1(%rdi), %al
+    testb %al, %al
+    jz parse_mode_append_only   # apenas "a"
+    
+    cmpb $'+', %al
+    je parse_mode_append_read   # "a+"
+    
+    # Caractere inválido após 'a'
+    movq $-1, %rax
+    jmp parse_mode_done
+    
+parse_mode_append_only:
+    movq $O_WRONLY, %rax
+    orq $O_CREAT, %rax
+    orq $O_APPEND, %rax
+    jmp parse_mode_done
+    
+parse_mode_append_read:
+    movq $O_RDWR, %rax
+    orq $O_CREAT, %rax
+    orq $O_APPEND, %rax
+    
+parse_mode_done:
+    popq %rbp
+    ret
+
+# Função auxiliar para encontrar slot livre na tabela de arquivos
+_find_free_file_slot:
+    # Saída: %rax = ponteiro para FILE livre (ou 0 se não há slots)
+    pushq %rbp
+    movq %rsp, %rbp
+    pushq %r12
+    pushq %r13
+    
+    leaq file_table(%rip), %r12  # início da tabela
+    movq $MAX_FILES, %r13        # contador
+    
+find_slot_loop:
+    testq %r13, %r13
+    jz find_slot_none           # não há mais slots
+    
+    # Verifica se o slot está livre (fd == 0)
+    movq (%r12), %rax           # carrega fd
+    testq %rax, %rax
+    jz find_slot_found          # slot livre encontrado
+    
+    # Próximo slot
+    addq $FILE_STRUCT_SIZE, %r12
+    decq %r13
+    jmp find_slot_loop
+    
+find_slot_found:
+    movq %r12, %rax             # retorna ponteiro para o slot
+    jmp find_slot_done
+    
+find_slot_none:
+    movq $0, %rax               # não há slots livres
+    
+find_slot_done:
+    popq %r13
+    popq %r12
+    popq %rbp
+    ret
 
 # ######################################################################################################
 # FCLOSE - Implementação de fclose para fechamento de arquivos
@@ -992,12 +1122,12 @@ _fclose:
     movq $0, %rax
     jmp fclose_done
     
-    fclose_error:
-        movq $EOF, %rax             # retorna EOF (-1)
-        
-    fclose_done:
-        popq %rbp
-        ret
+fclose_error:
+    movq $EOF, %rax             # retorna EOF (-1)
+    
+fclose_done:
+    popq %rbp
+    ret
 
 # ######################################################################################################
 # FUNÇÕES DE CONVERSÃO STRING-TO-TYPE
@@ -2493,8 +2623,10 @@ _skip_whitespace:
         popq %rax
         ret
 
-# Função auxiliar para pular número no buffer de entrada 
+# Função auxiliar para pular número no buffer de entrada (TODO: implementar)
 _skip_number_in_buffer:
+    # TODO: Implementar função para avançar buffer após ler um número
+    # Por enquanto, implementação simplificada que pula até espaço ou fim
     pushq %rax
     skip_number_loop:
         movb (%r13), %al                                # carrega caractere atual
@@ -2521,139 +2653,6 @@ _skip_number_in_buffer:
     
     skip_number_done:
         popq %rax
-        ret
-
-# Função auxiliar para parse do modo de fopen
-_parse_fopen_mode:
-    # Entrada: %rdi = string do modo
-    # Saída: %rax = flags do sistema (-1 se inválido)
-    pushq %rbp
-    movq %rsp, %rbp
-    
-    # Verifica primeiro caractere
-    movb (%rdi), %al
-    
-    cmpb $'r', %al
-    je parse_mode_read
-    cmpb $'w', %al
-    je parse_mode_write
-    cmpb $'a', %al
-    je parse_mode_append
-    
-    # Modo inválido
-    movq $-1, %rax
-    jmp parse_mode_done
-    
-    parse_mode_read:
-        # Verifica se é "r" ou "r+"
-        movb 1(%rdi), %al
-        testb %al, %al
-        jz parse_mode_read_only     # apenas "r"
-        
-        cmpb $'+', %al
-        je parse_mode_read_write    # "r+"
-        
-        # Caractere inválido após 'r'
-        movq $-1, %rax
-        jmp parse_mode_done
-        
-    parse_mode_read_only:
-        movq $O_RDONLY, %rax
-        jmp parse_mode_done
-        
-    parse_mode_read_write:
-        movq $O_RDWR, %rax
-        jmp parse_mode_done
-        
-    parse_mode_write:
-        # Verifica se é "w" ou "w+"
-        movb 1(%rdi), %al
-        testb %al, %al
-        jz parse_mode_write_only    # apenas "w"
-        
-        cmpb $'+', %al
-        je parse_mode_write_read    # "w+"
-        
-        # Caractere inválido após 'w'
-        movq $-1, %rax
-        jmp parse_mode_done
-        
-    parse_mode_write_only:
-        movq $O_WRONLY, %rax
-        orq $O_CREAT, %rax
-        orq $O_TRUNC, %rax
-        jmp parse_mode_done
-        
-    parse_mode_write_read:
-        movq $O_RDWR, %rax
-        orq $O_CREAT, %rax
-        orq $O_TRUNC, %rax
-        jmp parse_mode_done
-        
-    parse_mode_append:
-        # Verifica se é "a" ou "a+"
-        movb 1(%rdi), %al
-        testb %al, %al
-        jz parse_mode_append_only   # apenas "a"
-        
-        cmpb $'+', %al
-        je parse_mode_append_read   # "a+"
-        
-        # Caractere inválido após 'a'
-        movq $-1, %rax
-        jmp parse_mode_done
-        
-    parse_mode_append_only:
-        movq $O_WRONLY, %rax
-        orq $O_CREAT, %rax
-        orq $O_APPEND, %rax
-        jmp parse_mode_done
-        
-    parse_mode_append_read:
-        movq $O_RDWR, %rax
-        orq $O_CREAT, %rax
-        orq $O_APPEND, %rax
-        
-    parse_mode_done:
-        popq %rbp
-        ret
-
-# Função auxiliar para encontrar slot livre na tabela de arquivos
-_find_free_file_slot:
-    # Saída: %rax = ponteiro para FILE livre (ou 0 se não há slots)
-    pushq %rbp
-    movq %rsp, %rbp
-    pushq %r12
-    pushq %r13
-    
-    leaq file_table(%rip), %r12  # início da tabela
-    movq $MAX_FILES, %r13        # contador
-    
-    find_slot_loop:
-        testq %r13, %r13
-        jz find_slot_none           # não há mais slots
-        
-        # Verifica se o slot está livre (fd == 0)
-        movq (%r12), %rax           # carrega fd
-        testq %rax, %rax
-        jz find_slot_found          # slot livre encontrado
-        
-        # Próximo slot
-        addq $FILE_STRUCT_SIZE, %r12
-        decq %r13
-        jmp find_slot_loop
-        
-    find_slot_found:
-        movq %r12, %rax             # retorna ponteiro para o slot
-        jmp find_slot_done
-        
-    find_slot_none:
-        movq $0, %rax               # não há slots livres
-        
-    find_slot_done:
-        popq %r13
-        popq %r12
-        popq %rbp
         ret
 
 # ######################################################################################################
@@ -2700,101 +2699,101 @@ _test_fopen_fclose:
     call _printf
     jmp test_fopen_continue1
     
-    test_fopen_error1:
-        leaq fopen_test_error(%rip), %rdi
-        call _printf
-        jmp test_fopen_continue1
-        
-    test_fclose_error1:
-        leaq fopen_test_close_error(%rip), %rdi
-        call _printf
-        
-    test_fopen_continue1:
-        # Teste 2: Tentar abrir arquivo para leitura
-        leaq fopen_test_reading(%rip), %rdi
-        call _printf
-        
-        leaq fopen_test_filename(%rip), %rdi
-        leaq fopen_mode_read(%rip), %rsi
-        call _fopen
-        movq %rax, %r12
-        
-        testq %rax, %rax
-        jz test_fopen_error2
-        
-        # Sucesso na abertura para leitura
-        leaq fopen_test_success(%rip), %rdi
-        movq %r12, %rsi
-        call _printf
-        
-        # Fechar o arquivo
-        leaq fopen_test_closing(%rip), %rdi
-        call _printf
-        
-        movq %r12, %rdi
-        call _fclose
-        
-        testq %rax, %rax
-        jnz test_fclose_error2
-        
-        leaq fopen_test_close_success(%rip), %rdi
-        call _printf
-        jmp test_fopen_continue2
+test_fopen_error1:
+    leaq fopen_test_error(%rip), %rdi
+    call _printf
+    jmp test_fopen_continue1
     
-    test_fopen_error2:
-        leaq fopen_test_error(%rip), %rdi
-        call _printf
-        jmp test_fopen_continue2
-        
-    test_fclose_error2:
-        leaq fopen_test_close_error(%rip), %rdi
-        call _printf
-        
-    test_fopen_continue2:
-        # Teste 3: Abrir arquivo para anexar
-        leaq fopen_test_appending(%rip), %rdi
-        call _printf
-        
-        leaq fopen_test_filename(%rip), %rdi
-        leaq fopen_mode_append(%rip), %rsi
-        call _fopen
-        movq %rax, %r12
-        
-        testq %rax, %rax
-        jz test_fopen_error3
-        
-        # Sucesso na abertura para anexar
-        leaq fopen_test_success(%rip), %rdi
-        movq %r12, %rsi
-        call _printf
-        
-        # Fechar o arquivo
-        leaq fopen_test_closing(%rip), %rdi
-        call _printf
-        
-        movq %r12, %rdi
-        call _fclose
-        
-        testq %rax, %rax
-        jnz test_fclose_error3
-        
-        leaq fopen_test_close_success(%rip), %rdi
-        call _printf
-        jmp test_fopen_done
+test_fclose_error1:
+    leaq fopen_test_close_error(%rip), %rdi
+    call _printf
     
-    test_fopen_error3:
-        leaq fopen_test_error(%rip), %rdi
-        call _printf
-        jmp test_fopen_done
-        
-    test_fclose_error3:
-        leaq fopen_test_close_error(%rip), %rdi
-        call _printf
-        
-    test_fopen_done:
-        popq %r12
-        popq %rbp
-        ret
+test_fopen_continue1:
+    # Teste 2: Tentar abrir arquivo para leitura
+    leaq fopen_test_reading(%rip), %rdi
+    call _printf
+    
+    leaq fopen_test_filename(%rip), %rdi
+    leaq fopen_mode_read(%rip), %rsi
+    call _fopen
+    movq %rax, %r12
+    
+    testq %rax, %rax
+    jz test_fopen_error2
+    
+    # Sucesso na abertura para leitura
+    leaq fopen_test_success(%rip), %rdi
+    movq %r12, %rsi
+    call _printf
+    
+    # Fechar o arquivo
+    leaq fopen_test_closing(%rip), %rdi
+    call _printf
+    
+    movq %r12, %rdi
+    call _fclose
+    
+    testq %rax, %rax
+    jnz test_fclose_error2
+    
+    leaq fopen_test_close_success(%rip), %rdi
+    call _printf
+    jmp test_fopen_continue2
+    
+test_fopen_error2:
+    leaq fopen_test_error(%rip), %rdi
+    call _printf
+    jmp test_fopen_continue2
+    
+test_fclose_error2:
+    leaq fopen_test_close_error(%rip), %rdi
+    call _printf
+    
+test_fopen_continue2:
+    # Teste 3: Abrir arquivo para anexar
+    leaq fopen_test_appending(%rip), %rdi
+    call _printf
+    
+    leaq fopen_test_filename(%rip), %rdi
+    leaq fopen_mode_append(%rip), %rsi
+    call _fopen
+    movq %rax, %r12
+    
+    testq %rax, %rax
+    jz test_fopen_error3
+    
+    # Sucesso na abertura para anexar
+    leaq fopen_test_success(%rip), %rdi
+    movq %r12, %rsi
+    call _printf
+    
+    # Fechar o arquivo
+    leaq fopen_test_closing(%rip), %rdi
+    call _printf
+    
+    movq %r12, %rdi
+    call _fclose
+    
+    testq %rax, %rax
+    jnz test_fclose_error3
+    
+    leaq fopen_test_close_success(%rip), %rdi
+    call _printf
+    jmp test_fopen_done
+    
+test_fopen_error3:
+    leaq fopen_test_error(%rip), %rdi
+    call _printf
+    jmp test_fopen_done
+    
+test_fclose_error3:
+    leaq fopen_test_close_error(%rip), %rdi
+    call _printf
+    
+test_fopen_done:
+    popq %r12
+    popq %rbp
+    ret
 
 # ######################################################################################################
 # FUNÇÃO DE TESTE PARA PRINTF (VALORES MÍNIMOS E MÁXIMOS - TODOS OS TIPOS SIGNED)
