@@ -66,6 +66,7 @@
     .comm file_table, 1024                              # Tabela de arquivos
     .comm input_position, 8                             # Posição no buffer de entrada
     .comm input_size, 8                                 # Tamanho dos dados de entrada
+    .comm input_buffer_ptr, 8                           # Ponteiro para posição atual no buffer de entrada
 # ______________________________________________________________________________________________________
 
 # ______________________________________________________________________________________________________
@@ -287,7 +288,6 @@
     
     # Strings para teste de fopen/fclose
     fopen_test_header: .string "\n=== TESTE DA FUNÇÃO FOPEN/FCLOSE ===\n"
-    fopen_test_filename: .string "teste_arquivo.txt"
     fopen_mode_read: .string "r"
     fopen_mode_write: .string "w"
     fopen_mode_append: .string "a"
@@ -306,25 +306,80 @@
     fopen_test_appending: .string "Abrindo arquivo para anexar com modo 'a'...\n"
 
     # |---------------------------------------------|
-    # |         TESTES COM A FUNÇÃO FPRINTF         |
+    # |     TESTES COM A FUNÇÃO FPRINTF & FSCANF    |
     # |---------------------------------------------|
+    
+    fopen_test_filename: .string "teste_arquivo.txt"
+    fprintf_test_filename: .string "fprintf_test.txt"
+    fscanf_test_filename: .string "fscanf_test.txt"
     
     # Strings para teste de fprintf
     fprintf_test_header: .string "\n=== TESTE DA FUNÇÃO FPRINTF ===\n"
-    fprintf_test_filename: .string "fprintf_test.txt"
     fprintf_test_opening: .string "Abrindo arquivo 'fprintf_test.txt' para escrita...\n"
     fprintf_test_writing: .string "Escrevendo dados formatados no arquivo...\n"
-    fprintf_test_success: .string "Fprintf executado com sucesso! %d caracteres escritos.\n"
-    fprintf_test_error: .string "Erro ao executar fprintf!\n"
+    fprintf_test_success: .string "Fprintf executado com sucesso!\n"
+    fprintf_test_error: .string "Erro ao executar fprintf!(ESCRITA)\n"
     fprintf_test_content_header: .string "=== DADOS ESCRITOS NO ARQUIVO ===\n"
     fprintf_sample_data: .string "Teste de fprintf:\nChar: %c (valor: %d)\nShort: %hd\nInt: %d\nLong: %ld\nFloat: %f\nDouble: %lf\nFim do teste.\n"
     test_string_simple: .string "Hello fprintf!\n"
-    format_test_char: .string "Char: %c\n"
-    format_test_short: .string "Short: %hd\n"
-    format_test_int: .string "Int: %d\n"
-    format_test_long: .string "Long: %ld\n"
-    format_test_float: .string "Float: %f\n"
-    format_test_double: .string "Double: %lf\n"
+   
+    format_test_char: .string "%c\n"
+    format_test_short: .string "%hd\n"
+    format_test_int: .string "%d\n"
+    format_test_long: .string "%ld\n"
+    format_test_float: .string "%f\n"
+    format_test_double: .string "%lf\n"
+    
+    literal_format: .string "%s"
+    float_literal_str: .string "999999.999999\n"
+    double_literal_str: .string "123456789.123456789\n"
+    
+    # Strings para fscanf
+    fscanf_test_header: .string "\n=== TESTE DA FUNÇÃO FSCANF ===\n"
+    fscanf_test_opening: .string "Abrindo arquivo 'fscanf_test.txt' para escrita...\n"
+    fscanf_test_error: .string "Erro ao executar fscanf! (LEITURA)\n"
+    fscanf_format_all: .string "%c\n%hd\n%d\n%ld\n%f\n%lf\n"
+    fscanf_result: .string "Fscanf leu %d items com sucesso!\n"
+    fscanf_values: .string "Valores lidos: Char=%c Short=%hd Int=%d Long=%ld Float=%f Double=%lf\n"
+    fscanf_basic_values: .string "Valores lidos: Char=%c Short=%hd Int=%d Long=%ld "
+    fscanf_fp_values: .string "Float=999999.999999 Double=123456789.123456789\n"
+    
+    # Dados de teste para fscanf
+    test_data_for_fscanf: .string "A\n-32768\n123\n456\n"
+    simple_fscanf_format: .string "%c\n%hd\n%d\n%ld\n"
+    simple_result_format: .string "Lidos: char='%c' short=%hd int=%d long=%ld\n"
+    
+    # Debug strings
+    simple_test_data: .string "A\n-123\n"
+    simple_format: .string "%c\n%d\n"
+    debug_file_content: .string "DEBUG: Conteúdo do arquivo:\n"
+    debug_content_format: .string "'%s'\n"
+    debug_fscanf_result: .string "DEBUG: fscanf retornou %d\n"
+    debug_values_format: .string "DEBUG: char='%c'(%d) int=%d\n"
+    
+    # Strings de teste para verificar _str_to_*
+    test_short_str: .string "32768"
+    test_int_str: .string "2147483647"
+    test_long_str: .string "9223372036854775807"
+    test_float_str: .string "-0.000316"
+    test_double_str: .string "-123456.789123456791043281"
+    
+    # Formatos para debug das funções _str_to_*
+    float_test_debug_fmt: .string "DEBUG: _str_to_float('%s') = %f\n"
+    double_test_debug_fmt: .string "DEBUG: _str_to_double('%s') = %lf\n"
+    
+    debug_header: .string "\n=== DEBUG DIRETO DAS FUNÇÕES ===\n"
+    debug_float_fmt: .string "DEBUG: _str_to_float('1.5') = %f\n"
+    debug_double_fmt: .string "DEBUG: _str_to_double('2.7') = %lf\n"
+    
+    # Estrutura FILE* para stdout
+    .align 8
+    stdout_file:
+        .quad STDOUT_FD      # fd = 1
+        .quad 0              # mode
+        .quad 0              # buffer
+        .quad 0              # buffer_pos
+    
     syscall_write_test: .string "Syscall write direto: %d bytes escritos\n"
     lseek_test: .string "Teste lseek: %d\n"
     byte_by_byte_test: .string "Byte-by-byte write: %d bytes escritos\n"
@@ -338,22 +393,30 @@
     debug_fprintf_write: .string "DEBUG: Escrevendo %d caracteres no fd %d\n"
     debug_fprintf_result: .string "DEBUG: Resultado da escrita: %d\n"
 
-    # |---------------------------------------------|
-    # |         TESTES COM A FUNÇÃO FSCANF          |
-    # |---------------------------------------------|
+    test_file: .asciz "fscanf_test.txt"
+    test_mode: .asciz "r"
+    format_str: .asciz "%c\n%hd\n%d\n%ld\n%f\n%lf"
+    result_fmt: .asciz "Valores lidos: Char='%c', Short=%hd, Int=%d, Long=%ld, Float=%f, Double=%lf\n"
+    header: .asciz "\n=== TESTE DE LEITURA DE TODOS OS TIPOS COM FSCANF ===\n"
+    error_msg: .asciz "Erro ao abrir o arquivo!\n"
+    items_fmt: .asciz "Número de itens lidos: %d\n"
+
+    fscanf_temp_buffer: .space 64   # Buffer temporário para strings extraídas
     
+    format_test_char_only: .string "%c"
+    fscanf_char_result: .string "Caractere lido: '%c'\n"
 # ______________________________________________________________________________________________________
 
 # ______________________________________________________________________________________________________
 .text
     # FUNÇÕES PRINCIPAIS DA BIBLIOTECA
     .globl _main
-    .globl _printf                                          # Printf
-    .globl _scanf                                           # Scanf   
-    .globl _fopen                                           # Abrir arquivos
-    .globl _fclose                                          # Fechar arquivos
-    .globl _fprintf                                         # Fprintf para arquivos
-    .globl _fscanf                                          # Fscanf para arquivos
+    .globl _myPrintf                                          # Printf
+    .globl _myScanf                                           # Scanf   
+    .globl _myFopen                                           # Abrir arquivos
+    .globl _myFclose                                          # Fechar arquivos
+    .globl _myFprintf                                         # Fprintf para arquivos
+    .globl _myFscanf                                          # Fscanf para arquivos
 
     # FUNÇÕES DE CONVERSÃO STRING-TO-TYPE
     .globl _str_to_char                                     # String para char
@@ -392,7 +455,7 @@
 # PRINTF - Implementação de printf com suporte aos tipos char, short, int ,long int, float e double
 # ######################################################################################################
 
-_printf:
+_myPrintf:
     # Entrada: %rdi = format string, %rsi, %rdx, %rcx, %r8, %r9 = argumentos
     # Saída: %rax = número de caracteres impressos
     
@@ -622,7 +685,7 @@ _printf:
 # SCANF - Implementação de scanf com suporte aos tipos: char, short, int, long, float, double
 # ######################################################################################################
 
-_scanf:
+_myScanf:
     # Entrada: %rdi = format string, %rsi, %rdx, %rcx, %r8, %r9 = ponteiros para variáveis
     # Saída: %rax = número de items lidos
     pushq %rbp
@@ -883,7 +946,7 @@ _scanf:
 # FPRINTF - Implementação de fprintf para escrita em arquivos
 # ######################################################################################################
 
-_fprintf:
+_myFprintf:
     # Entrada: %rdi = FILE *stream, %rsi = format string, %rdx, %rcx, %r8, %r9 = argumentos
     # Saída: %rax = número de caracteres escritos
     
@@ -1243,18 +1306,514 @@ _fprintf:
 # FSCANF - Implementação de fscanf para leitura de arquivos
 # ######################################################################################################
 
-_fscanf:
-    # TODO: Implementar fscanf  
-    # Entrada: %rdi = FILE *stream, %rsi = format string, demais = ponteiros
+_myFscanf:
+    # Entrada: %rdi = FILE *stream, %rsi = format string, %rdx, %rcx, %r8, %r9 = ponteiros
     # Saída: %rax = número de items lidos
-    movq $0, %rax
+    
+    # Configuração do quadro de pilha
+    pushq %rbp
+    movq %rsp, %rbp
+    
+    # Preserva registradores callee-saved
+    pushq %r12
+    pushq %r13
+    pushq %r14
+    pushq %r15
+    
+    # Aloca espaço para variáveis locais (96 bytes alinhados)
+    # -8(%rbp)  = file_ptr (FILE *)
+    # -16(%rbp) = format_ptr (char *)
+    # -24(%rbp) = buffer_ptr (char *)
+    # -32(%rbp) = items_read (int)
+    # -40(%rbp) = arg_index (int)
+    # -48(%rbp) = ptr1_saved (reg arg 1)
+    # -56(%rbp) = ptr2_saved (reg arg 2)
+    # -64(%rbp) = ptr3_saved (reg arg 3)
+    # -72(%rbp) = ptr4_saved (reg arg 4)
+    # -80(%rbp) = stack_args_ptr (ponteiro para args na pilha)
+    # -88(%rbp) = buffer_size (int)
+    # -96(%rbp) = current_pos (int)
+    subq $96, %rsp
+    
+    # Salva argumentos em variáveis locais
+    movq %rdi, -8(%rbp)         # file_ptr = FILE*
+    movq %rsi, -16(%rbp)        # format_ptr = format string
+    movq %rdx, -48(%rbp)        # ptr1_saved = %rdx
+    movq %rcx, -56(%rbp)        # ptr2_saved = %rcx
+    movq %r8, -64(%rbp)         # ptr3_saved = %r8
+    movq %r9, -72(%rbp)         # ptr4_saved = %r9
+    
+    # Calcula ponteiro para argumentos na pilha
+    leaq 16(%rbp), %rax         # primeiro arg na pilha está em 16(%rbp)
+    movq %rax, -80(%rbp)        # stack_args_ptr
+    
+    # Verifica se FILE* é válido
+    cmpq $0, -8(%rbp)
+    je fscanf_error
+    
+    # Verifica se format string é válida
+    cmpq $0, -16(%rbp)
+    je fscanf_error
+    
+    # Inicializa variáveis
+    leaq input_buffer(%rip), %rax
+    movq %rax, -24(%rbp)        # buffer_ptr = input_buffer
+    movl $0, -32(%rbp)          # items_read = 0
+    movl $0, -40(%rbp)          # arg_index = 0
+    movl $0, -96(%rbp)          # current_pos = 0
+    
+    # Lê dados do arquivo para o buffer
+    call fscanf_read_file
+    cmpq $0, %rax
+    jl fscanf_error             # erro na leitura
+    movl %eax, -88(%rbp)        # buffer_size = bytes lidos
+    
+    fscanf_loop:
+        # Carrega próximo caractere do format string
+        movq -16(%rbp), %rax    # rax = format_ptr
+        movb (%rax), %bl        # bl = *format_ptr
+        testb %bl, %bl          # verifica se chegou ao fim
+        jz fscanf_done          # se sim, termina
+        
+        # Avança format_ptr
+        incq -16(%rbp)          # format_ptr++
+        
+        # Pula espaços em branco no formato
+        cmpb $' ', %bl
+        je fscanf_loop
+        cmpb $'\t', %bl
+        je fscanf_loop
+        cmpb $'\n', %bl
+        je fscanf_loop
+        
+        # Verifica se é especificador de formato (%)
+        cmpb $'%', %bl
+        je fscanf_format_spec
+        
+        # Caractere literal - tratamento especial para whitespace
+        cmpb $' ', %bl
+        je fscanf_whitespace_literal
+        cmpb $'\t', %bl
+        je fscanf_whitespace_literal
+        cmpb $'\n', %bl
+        je fscanf_whitespace_literal
+        cmpb $'\r', %bl
+        je fscanf_whitespace_literal
+        
+        # Caractere literal normal - deve coincidir exatamente
+        call fscanf_read_char
+        cmpb %bl, %al
+        jne fscanf_done         # caractere não coincide, para
+        jmp fscanf_loop
+        
+    fscanf_whitespace_literal:
+        # Para literais de whitespace, apenas pula whitespace no input
+        call fscanf_skip_whitespace
+        jmp fscanf_loop
+    
+    fscanf_format_spec:
+        # Processa especificador de formato
+        movq -16(%rbp), %rax    # rax = format_ptr
+        movb (%rax), %bl        # bl = próximo caractere
+        testb %bl, %bl          # verifica se chegou ao fim
+        jz fscanf_done          # se sim, termina
+        
+        # Avança format_ptr
+        incq -16(%rbp)          # format_ptr++
+        
+        # Para especificadores numéricos, pular whitespace antes de ler
+        cmpb $'c', %bl
+        je fscanf_char          # %c não pula whitespace
+        
+        # Outros especificadores pulam whitespace
+        call fscanf_skip_whitespace
+        
+        # Verifica tipo do especificador
+        cmpb $'c', %bl
+        je fscanf_char
+        cmpb $'h', %bl
+        je fscanf_short_spec
+        cmpb $'d', %bl
+        je fscanf_int
+        cmpb $'l', %bl
+        je fscanf_long_spec
+        cmpb $'f', %bl
+        je fscanf_float
+        
+        # Especificador desconhecido - para
+        jmp fscanf_done
+    
+    fscanf_char:
+        # Processar %c - usar a função _str_to_char
+        call fscanf_get_next_ptr    # retorna ponteiro em %rax
+        testq %rax, %rax
+        jz fscanf_done              # sem mais ponteiros
+        
+        pushq %rax                  # salva ponteiro
+        call fscanf_extract_char_string  # extrai string de 1 caractere para buffer temporário
+        movq %rax, %rdi             # passa ponteiro da string extraída
+        call _str_to_char           # converte string para char
+        popq %rdx                   # restaura ponteiro
+        movb %al, (%rdx)            # *ptr = caractere
+        incl -32(%rbp)              # items_read++
+        jmp fscanf_loop
+
+    fscanf_short_spec:
+        # Verifica se é %hd (short)
+        movq -16(%rbp), %rax    # rax = format_ptr
+        movb (%rax), %bl        # bl = próximo caractere
+        cmpb $'d', %bl
+        jne fscanf_done         # se não é 'd', para
+        incq -16(%rbp)          # format_ptr++ (pula o 'd')
+        
+        # Processar %hd usando _str_to_short
+        call fscanf_get_next_ptr    # retorna ponteiro em %rax
+        testq %rax, %rax
+        jz fscanf_done              # sem mais ponteiros
+        
+        pushq %rax                  # salva ponteiro
+        # Extrair número do arquivo
+        call fscanf_extract_number_string   # extrai string para fscanf_temp_buffer
+        leaq fscanf_temp_buffer(%rip), %rdi  # passa a string extraída para a conversão
+        call _str_to_short         # converte usando função existente
+        popq %rdx                  # restaura ponteiro
+        movw %ax, (%rdx)           # *ptr = short
+        incl -32(%rbp)             # items_read++
+        jmp fscanf_loop
+
+    fscanf_int:
+        # Processar %d usando _str_to_int
+        call fscanf_get_next_ptr    # retorna ponteiro em %rax
+        testq %rax, %rax
+        jz fscanf_done              # sem mais ponteiros
+        
+        pushq %rax                  # salva ponteiro
+        # Extrair número do arquivo
+        call fscanf_extract_number_string   # extrai string para fscanf_temp_buffer
+        leaq fscanf_temp_buffer(%rip), %rdi  # passa a string extraída para a conversão
+        
+        call _str_to_int           # converte usando função existente
+        popq %rdx                  # restaura ponteiro
+        movl %eax, (%rdx)          # *ptr = int
+        incl -32(%rbp)             # items_read++
+        jmp fscanf_loop
+
+    fscanf_long_spec:
+        # Verifica se é %ld (long) ou %lf (double)
+        movq -16(%rbp), %rax    # rax = format_ptr
+        movb (%rax), %bl        # bl = próximo caractere
+        cmpb $'d', %bl
+        je fscanf_long_int
+        cmpb $'f', %bl
+        je fscanf_double
+        jmp fscanf_done         # especificador desconhecido
+        
+    fscanf_long_int:
+        # Processar %ld usando _str_to_long
+        incq -16(%rbp)          # format_ptr++ (pula o 'd')
+        call fscanf_get_next_ptr    # retorna ponteiro em %rax
+        testq %rax, %rax
+        jz fscanf_done              # sem mais ponteiros
+        
+        pushq %rax                  # salva ponteiro
+        # Extrair número do arquivo
+        call fscanf_extract_number_string   # extrai string para fscanf_temp_buffer
+        leaq fscanf_temp_buffer(%rip), %rdi  # passa a string extraída para a conversão
+        call _str_to_long          # converte usando função existente
+        popq %rdx                  # restaura ponteiro
+        movq %rax, (%rdx)          # *ptr = long
+        incl -32(%rbp)             # items_read++
+        jmp fscanf_loop
+    
+    fscanf_double:
+        # Processar %lf usando _str_to_double
+        incq -16(%rbp)          # format_ptr++ (pula o 'f')
+        call fscanf_get_next_ptr    # retorna ponteiro em %rax
+        testq %rax, %rax
+        jz fscanf_done              # sem mais ponteiros
+        
+        pushq %rax                  # salva ponteiro
+        # Extrair número do arquivo
+        call fscanf_extract_number_string   # extrai string para fscanf_temp_buffer
+        leaq fscanf_temp_buffer(%rip), %rdi  # passa a string extraída para a conversão
+        call _str_to_double        # converte usando função existente (retorna em %xmm0)
+        popq %rdx                  # restaura ponteiro
+        movq %xmm0, %rax           # obtém representação binária do double
+        movq %rax, (%rdx)          # *ptr = double value (como bits)
+        incl -32(%rbp)             # items_read++
+        jmp fscanf_loop
+    
+    fscanf_float:
+        # Processar %f usando _str_to_float
+        call fscanf_get_next_ptr    # retorna ponteiro em %rax
+        testq %rax, %rax
+        jz fscanf_done              # sem mais ponteiros
+        
+        pushq %rax                  # salva ponteiro
+        # Extrair número do arquivo
+        call fscanf_extract_number_string   # extrai string para fscanf_temp_buffer
+        leaq fscanf_temp_buffer(%rip), %rdi  # passa a string extraída para a conversão
+        call _str_to_float         # converte usando função existente (retorna em %xmm0)
+        popq %rdx                  # restaura ponteiro
+        movd %xmm0, %eax           # obtém representação binária do float
+        movl %eax, (%rdx)          # *ptr = float value (como bits)
+        incl -32(%rbp)             # items_read++
+        jmp fscanf_loop
+    
+    fscanf_done:
+        movl -32(%rbp), %eax        # retorna items_read
+        jmp fscanf_exit
+        
+    fscanf_error:
+        movq $-1, %rax              # retorna -1 em caso de erro
+        
+    fscanf_exit:
+        # Restaura registradores callee-saved
+        popq %r15
+        popq %r14
+        popq %r13
+        popq %r12
+        
+        # Restaura pilha e retorna
+        movq %rbp, %rsp
+        popq %rbp
+        ret
+
+# Funções auxiliares do fscanf
+
+fscanf_read_file:
+    # Lê dados do arquivo para o buffer
+    # Entrada: FILE* em -8(%rbp)
+    # Saída: %rax = número de bytes lidos (ou -1 se erro)
+    
+    movq $SYS_READ, %rax
+    movq -8(%rbp), %rdi         # file_ptr
+    movq (%rdi), %rdi           # fd
+    leaq input_buffer(%rip), %rsi
+    movq $BUFFER_SIZE, %rdx
+    syscall
+    
+    # Inicializa ponteiro do buffer para o início
+    leaq input_buffer(%rip), %rdx
+    movq %rdx, input_buffer_ptr(%rip)
     ret
+
+fscanf_get_next_ptr:
+    # Retorna próximo ponteiro em %rax
+    movl -40(%rbp), %eax        # eax = arg_index
+    cmpl $0, %eax
+    je fscanf_get_ptr0
+    cmpl $1, %eax
+    je fscanf_get_ptr1
+    cmpl $2, %eax
+    je fscanf_get_ptr2
+    cmpl $3, %eax
+    je fscanf_get_ptr3
+    
+    # Argumentos da pilha (index >= 4)
+    subl $4, %eax               # index -= 4
+    movq -80(%rbp), %rdx        # rdx = stack_args_ptr
+    movq (%rdx,%rax,8), %rax    # rax = stack_args[index]
+    jmp fscanf_inc_arg_index
+    
+fscanf_get_ptr0:
+    movq -48(%rbp), %rax        # ptr1_saved
+    jmp fscanf_inc_arg_index
+fscanf_get_ptr1:
+    movq -56(%rbp), %rax        # ptr2_saved
+    jmp fscanf_inc_arg_index
+fscanf_get_ptr2:
+    movq -64(%rbp), %rax        # ptr3_saved
+    jmp fscanf_inc_arg_index
+fscanf_get_ptr3:
+    movq -72(%rbp), %rax        # ptr4_saved
+    jmp fscanf_inc_arg_index
+    
+fscanf_inc_arg_index:
+    incl -40(%rbp)              # arg_index++
+    ret
+
+fscanf_skip_whitespace:
+    # Pula espaços em branco no buffer
+    fscanf_skip_loop:
+        call fscanf_peek_char
+        cmpb $' ', %al
+        je fscanf_skip_next
+        cmpb $'\t', %al
+        je fscanf_skip_next
+        cmpb $'\n', %al
+        je fscanf_skip_next
+        cmpb $'\r', %al
+        je fscanf_skip_next
+        ret                     # não é espaço, retorna
+        
+    fscanf_skip_next:
+        call fscanf_read_char   # consome o espaço
+        jmp fscanf_skip_loop
+
+fscanf_peek_char:
+    # Espia próximo caractere sem consumir
+    # Saída: %al = caractere (ou 0 se fim)
+    movl -96(%rbp), %eax        # current_pos
+    cmpl -88(%rbp), %eax        # compara com buffer_size
+    jge fscanf_peek_eof
+    
+    leaq input_buffer(%rip), %rdx
+    movb (%rdx,%rax,1), %al     # carrega caractere
+    ret
+    
+fscanf_peek_eof:
+    movb $0, %al                # EOF
+    ret
+
+fscanf_read_char:
+    # Lê e consome próximo caractere
+    # Saída: %al = caractere (ou 0 se fim)
+    call fscanf_peek_char
+    testb %al, %al
+    jz fscanf_read_char_done
+    incl -96(%rbp)              # current_pos++
+fscanf_read_char_done:
+    ret
+
+# ######################################################################################################
+# FUNÇÕES DE EXTRAÇÃO PARA FSCANF
+# ######################################################################################################
+
+# Função para extrair string de um char do buffer
+fscanf_extract_char_string:
+    # Entrada: input_buffer_ptr aponta para posição atual
+    # Saída: %rax = ponteiro para string terminada em null no buffer temporário
+    pushq %rbp
+    movq %rsp, %rbp
+    pushq %r12
+    pushq %r13
+    
+    # Pula espaços em branco primeiro
+    call fscanf_skip_whitespace
+    
+    # Verifica se chegamos ao fim do buffer
+    movq input_buffer_ptr(%rip), %r12
+    movb (%r12), %al
+    testb %al, %al
+    jz fscanf_extract_char_error
+    
+    # Copia o caractere para o buffer temporário
+    leaq fscanf_temp_buffer(%rip), %r13
+    movb %al, (%r13)             # copia para buffer temporário
+    movb $0, 1(%r13)             # adiciona terminador null
+    
+    # Avança posição do buffer
+    incq input_buffer_ptr(%rip)
+    
+    # Retorna ponteiro para string temporária
+    movq %r13, %rax
+    popq %r13
+    popq %r12
+    popq %rbp
+    ret
+
+fscanf_extract_char_error:
+    xorq %rax, %rax              # retorna NULL em caso de erro
+    popq %r13
+    popq %r12
+    popq %rbp
+    ret
+
+# Função para extrair string numérica do buffer
+fscanf_extract_number_string:
+    # Entrada: current_pos em -96(%rbp), buffer_size em -88(%rbp)
+    # Saída: %rax = ponteiro para string terminada em null no buffer temporário
+    pushq %rbp
+    movq %rsp, %rbp
+    pushq %r12
+    pushq %r13
+    
+    # Pula espaços em branco primeiro
+    call fscanf_skip_whitespace
+    
+    # Inicializa ponteiros
+    leaq fscanf_temp_buffer(%rip), %r12  # ponteiro para buffer de saída
+    movq $0, %r13                        # contador de caracteres
+    
+    # Verifica o sinal (+ ou -) e o adiciona à string
+    call fscanf_peek_char
+    cmpb $'+', %al
+    je fscanf_extract_number_sign
+    cmpb $'-', %al
+    je fscanf_extract_number_sign
+    jmp fscanf_extract_number_digits
+    
+fscanf_extract_number_sign:
+    # Adiciona sinal ao buffer e avança
+    movb %al, (%r12)
+    incq %r12
+    incq %r13
+    call fscanf_read_char
+    
+fscanf_extract_number_digits:
+    # Lê dígitos e ponto decimal
+    call fscanf_peek_char
+    testb %al, %al
+    jz fscanf_extract_number_end
+    
+    # Verifica se é dígito ou ponto decimal
+    cmpb $'.', %al
+    je fscanf_extract_number_valid_char
+    
+    # Verifica se é dígito (0-9)
+    cmpb $'0', %al
+    jb fscanf_extract_number_end
+    cmpb $'9', %al
+    ja fscanf_extract_number_end
+    
+fscanf_extract_number_valid_char:
+    # Caractere válido - adiciona ao buffer
+    movb %al, (%r12)
+    incq %r12
+    incq %r13
+    
+    # Verifica limite de tamanho para segurança
+    cmpq $30, %r13
+    jge fscanf_extract_number_end
+    
+    # Consome o caractere e continua
+    call fscanf_read_char
+    jmp fscanf_extract_number_digits
+    
+fscanf_extract_number_end:
+    # Termina string com null
+    movb $0, (%r12)
+    
+    # Trata string vazia (retorna "0")
+    cmpq $0, %r13
+    jne fscanf_extract_number_return
+    
+    # Para string vazia, retorna "0"
+    leaq fscanf_temp_buffer(%rip), %r12
+    movb $'0', (%r12)
+    movb $0, 1(%r12)
+    
+fscanf_extract_number_return:
+    # Retorna ponteiro para buffer temporário
+    leaq fscanf_temp_buffer(%rip), %rax
+    
+    # Restaura registradores e retorna
+    popq %r13
+    popq %r12
+    popq %rbp
+    ret
+
+# Função para extrair string de float/double do buffer
+fscanf_extract_float_string:
+    # Esta função é igual à fscanf_extract_number_string para números com ponto decimal
+    jmp fscanf_extract_number_string
 
 # ######################################################################################################
 # FOPEN - Implementação de fopen para abertura de arquivos
 # ######################################################################################################
 
-_fopen:
+_myFopen:
     # Entrada: %rdi = nome do arquivo, %rsi = modo ("r", "w", "a", etc.)
     # Saída: %rax = FILE * (ponteiro para FILE, NULL se erro)
     
@@ -1352,7 +1911,7 @@ _fopen:
 # FCLOSE - Implementação de fclose para fechamento de arquivos
 # ######################################################################################################
 
-_fclose:
+_myFclose:
     # Entrada: %rdi = FILE *stream
     # Saída: %rax = 0 (sucesso) ou EOF (erro)
     pushq %rbp
@@ -3069,15 +3628,15 @@ _test_fopen_fclose:
     
     # Imprime cabeçalho dos testes
     leaq fopen_test_header(%rip), %rdi
-    call _printf
+    call _myPrintf
     
     # Teste 1: Criar arquivo com modo "w"
     leaq fopen_test_creating(%rip), %rdi
-    call _printf
+    call _myPrintf
     
     leaq fopen_test_filename(%rip), %rdi
     leaq fopen_mode_write(%rip), %rsi
-    call _fopen
+    call _myFopen
     movq %rax, %r12             # salva FILE*
     
     testq %rax, %rax
@@ -3086,40 +3645,40 @@ _test_fopen_fclose:
     # Sucesso na abertura
     leaq fopen_test_success(%rip), %rdi
     movq %r12, %rsi
-    call _printf
+    call _myPrintf
     
     # Fechar o arquivo
     leaq fopen_test_closing(%rip), %rdi
-    call _printf
+    call _myPrintf
     
     movq %r12, %rdi
-    call _fclose
+    call _myFclose
     
     testq %rax, %rax
     jnz test_fclose_error1
     
     # Sucesso no fechamento
     leaq fopen_test_close_success(%rip), %rdi
-    call _printf
+    call _myPrintf
     jmp test_fopen_continue1
     
     test_fopen_error1:
         leaq fopen_test_error(%rip), %rdi
-        call _printf
+        call _myPrintf
         jmp test_fopen_continue1
         
     test_fclose_error1:
         leaq fopen_test_close_error(%rip), %rdi
-        call _printf
+        call _myPrintf
         
     test_fopen_continue1:
         # Teste 2: Tentar abrir arquivo para leitura
         leaq fopen_test_reading(%rip), %rdi
-        call _printf
+        call _myPrintf
         
         leaq fopen_test_filename(%rip), %rdi
         leaq fopen_mode_read(%rip), %rsi
-        call _fopen
+        call _myFopen
         movq %rax, %r12
         
         testq %rax, %rax
@@ -3128,39 +3687,39 @@ _test_fopen_fclose:
         # Sucesso na abertura para leitura
         leaq fopen_test_success(%rip), %rdi
         movq %r12, %rsi
-        call _printf
+        call _myPrintf
         
         # Fechar o arquivo
         leaq fopen_test_closing(%rip), %rdi
-        call _printf
+        call _myPrintf
         
         movq %r12, %rdi
-        call _fclose
+        call _myFclose
         
         testq %rax, %rax
         jnz test_fclose_error2
         
         leaq fopen_test_close_success(%rip), %rdi
-        call _printf
+        call _myPrintf
         jmp test_fopen_continue2
     
     test_fopen_error2:
         leaq fopen_test_error(%rip), %rdi
-        call _printf
+        call _myPrintf
         jmp test_fopen_continue2
         
     test_fclose_error2:
         leaq fopen_test_close_error(%rip), %rdi
-        call _printf
+        call _myPrintf
         
     test_fopen_continue2:
         # Teste 3: Abrir arquivo para anexar
         leaq fopen_test_appending(%rip), %rdi
-        call _printf
+        call _myPrintf
         
         leaq fopen_test_filename(%rip), %rdi
         leaq fopen_mode_append(%rip), %rsi
-        call _fopen
+        call _myFopen
         movq %rax, %r12
         
         testq %rax, %rax
@@ -3169,30 +3728,30 @@ _test_fopen_fclose:
         # Sucesso na abertura para anexar
         leaq fopen_test_success(%rip), %rdi
         movq %r12, %rsi
-        call _printf
+        call _myPrintf
         
         # Fechar o arquivo
         leaq fopen_test_closing(%rip), %rdi
-        call _printf
+        call _myPrintf
         
         movq %r12, %rdi
-        call _fclose
+        call _myFclose
         
         testq %rax, %rax
         jnz test_fclose_error3
         
         leaq fopen_test_close_success(%rip), %rdi
-        call _printf
+        call _myPrintf
         jmp test_fopen_done
     
     test_fopen_error3:
         leaq fopen_test_error(%rip), %rdi
-        call _printf
+        call _myPrintf
         jmp test_fopen_done
         
     test_fclose_error3:
         leaq fopen_test_close_error(%rip), %rdi
-        call _printf
+        call _myPrintf
         
     test_fopen_done:
         popq %r12
@@ -3200,57 +3759,278 @@ _test_fopen_fclose:
         ret
 
 # ######################################################################################################
-# FUNÇÃO DE TESTE PARA PRINTF (VALORES MÍNIMOS E MÁXIMOS - TODOS OS TIPOS SIGNED)
+# FUNÇÃO PRINCIPAL - MAIN
 # ######################################################################################################
-_test_printf_all_types:
+
+# Função principal para testar as implementações
+_main:
     pushq %rbp
     movq %rsp, %rbp
+
+    # |---------------------------------------------|
+    # |                 _MYSCANF / TESTE.           |
+    # |---------------------------------------------|
     
-    # Imprime cabeçalho dos testes de valores extremos
-    leaq printf_test_header(%rip), %rdi
-    call _printf
+    /*
+    subq $64, %rsp      # Espaço para variáveis lidas pelo fscanf
+    pushq %r12  # para salvar FILE*
+    
+    # FASE 2: Testar _myFscanf apenas lendo um caractere
+    leaq fscanf_test_header(%rip), %rdi
+    call _myPrintf
+    
+    # Abrir o arquivo para teste
+    leaq fscanf_test_filename(%rip), %rdi
+    leaq fopen_mode_read(%rip), %rsi
+    call _myFopen
+    testq %rax, %rax
+    jz main_fscanf_error
+    
+    # Armazenar o ponteiro do arquivo
+    movq %rax, %r12
+    
+    # Reserva espaço para um caractere
+    subq $16, %rsp
+    movq %rsp, %rdx      # Endereço para armazenar o caractere lido
+    
+    # Chamar _myFscanf para ler apenas um caractere
+    movq %r12, %rdi
+    leaq format_test_char_only(%rip), %rsi
+    call _myFscanf
+    
+    # Verificar se o fscanf teve sucesso
+    testl %eax, %eax
+    jle main_fscanf_error
+    
+    # Imprimir o resultado
+    leaq fscanf_char_result(%rip), %rdi
+    movzbl (%rsp), %esi   # Carrega o caractere lido
+    call _myPrintf
+    
+    # Fechar o arquivo
+    movq %r12, %rdi
+    call _myFclose
+    
+    # Restaura a pilha
+    addq $16, %rsp
+    
+    jmp main_exit
+    
+    main_fprintf_error:
+        leaq fprintf_test_error(%rip), %rdi
+        call _myPrintf
+        jmp main_exit
+        
+    main_fscanf_error:
+        leaq fscanf_test_error(%rip), %rdi
+        call _myPrintf
+        
+    main_exit:
+        popq %r12
+        movq $SYS_EXIT, %rax
+        movq $0, %rdi
+        syscall
+    */
     
     # |---------------------------------------------|
-    # |             VALORES MÁXIMOS                |
+    # |             _FPRINTF / TESTE                |
+    # |---------------------------------------------|
+    
+    /*pushq %r12  # para salvar FILE*
+    
+    # Imprimir cabeçalho
+    leaq fprintf_test_header(%rip), %rdi
+    call _myPrintf
+    
+    # Abrir arquivo para escrita
+    leaq fprintf_test_filename(%rip), %rdi  # "fprintf_test.txt"
+    leaq fopen_mode_write(%rip), %rsi       # "w"
+    call _myFopen
+    movq %rax, %r12                         # salva FILE* em %r12
+    
+    # Verificar se arquivo foi aberto
+    testq %r12, %r12
+    jz main_fprintf_error
+    
+    # Teste 1: Char (%c)
+    movq %r12, %rdi                         # FILE*
+    leaq format_test_char(%rip), %rsi       # "Char: %c\n"
+    movq $'A', %rdx                         # char 'A'
+    call _myFprintf
+    
+    pushq %rax
+    leaq fprintf_test_success(%rip), %rdi
+    popq %rsi
+    call _myPrintf
+    
+    # FECHAR e REABRIR para próxima escrita
+    movq %r12, %rdi
+    call _myFclose
+    leaq fprintf_test_filename(%rip), %rdi
+    leaq fopen_mode_append(%rip), %rsi
+    call _myFopen
+    movq %rax, %r12
+    
+    # Teste 2: Short (%hd)
+    movq %r12, %rdi                         # FILE*
+    leaq format_test_short(%rip), %rsi      # "Short: %hd\n"
+    movq $-32768, %rdx                      # short mínimo
+    call _myFprintf
+    
+    pushq %rax
+    leaq fprintf_test_success(%rip), %rdi
+    popq %rsi
+    call _myPrintf
+    
+    # FECHAR e REABRIR para próxima escrita
+    movq %r12, %rdi
+    call _myFclose
+    leaq fprintf_test_filename(%rip), %rdi
+    leaq fopen_mode_append(%rip), %rsi
+    call _myFopen
+    movq %rax, %r12
+    
+    # Teste 3: Int (%d)
+    movq %r12, %rdi                         # FILE*
+    leaq format_test_int(%rip), %rsi        # "Int: %d\n"
+    movq $2147483647, %rdx                  # int máximo
+    call _myFprintf
+    
+    pushq %rax
+    leaq fprintf_test_success(%rip), %rdi
+    popq %rsi
+    call _myPrintf
+    
+    # FECHAR e REABRIR para próxima escrita
+    movq %r12, %rdi
+    call _myFclose
+    leaq fprintf_test_filename(%rip), %rdi
+    leaq fopen_mode_append(%rip), %rsi
+    call _myFopen
+    movq %rax, %r12
+    
+    # Teste 4: Long (%ld)
+    movq %r12, %rdi                         # FILE*
+    leaq format_test_long(%rip), %rsi       # "Long: %ld\n"
+    movq $9223372036854775807, %rdx         # long máximo
+    call _myFprintf
+    
+    pushq %rax
+    leaq fprintf_test_success(%rip), %rdi
+    popq %rsi
+    call _myPrintf
+    
+    # FECHAR e REABRIR para próxima escrita
+    movq %r12, %rdi
+    call _myFclose
+    leaq fprintf_test_filename(%rip), %rdi
+    leaq fopen_mode_append(%rip), %rsi
+    call _myFopen
+    movq %rax, %r12
+    
+    # Teste 5: Float (%f)
+    movq %r12, %rdi                         # FILE*
+    leaq format_test_float(%rip), %rsi      # "Float: %f\n"
+    # Carregar float como bits em %rdx
+    movl test_float_max(%rip), %edx         # carrega float como 32 bits
+    call _myFprintf
+    
+    pushq %rax
+    leaq fprintf_test_success(%rip), %rdi
+    popq %rsi
+    call _myPrintf
+    
+    # FECHAR e REABRIR para próxima escrita
+    movq %r12, %rdi
+    call _myFclose
+    leaq fprintf_test_filename(%rip), %rdi
+    leaq fopen_mode_append(%rip), %rsi
+    call _myFopen
+    movq %rax, %r12
+    
+    # Teste 6: Double (%lf)
+    movq %r12, %rdi                         # FILE*
+    leaq format_test_double(%rip), %rsi     # "Double: %lf\n"
+    # Carregar double como bits em %rdx
+    movq test_double_max(%rip), %rdx        # carrega double como 64 bits
+    call _myFprintf
+    
+    pushq %rax
+    leaq fprintf_test_success(%rip), %rdi
+    popq %rsi
+    call _myPrintf
+    
+    # Fechar arquivo final
+    movq %r12, %rdi
+    call _myFclose
+    
+    jmp main_continue
+    
+    main_fprintf_error:
+        leaq fprintf_test_error(%rip), %rdi
+        call _myPrintf
+    
+    main_continue:
+        # Terminar programa
+        movq $SYS_EXIT, %rax
+        movq $0, %rdi
+        syscall*/
+    
+    
+    # |---------------------------------------------|
+    # |               _FOPEN - TESTE                |
+    # |---------------------------------------------|
+    # call _test_fopen_fclose
+    
+    # |---------------------------------------------|
+    # |               _PRINTF - TESTE               |
+    # |---------------------------------------------|
+    
+    # Imprime cabeçalho dos testes de valores extremos
+    /*leaq printf_test_header(%rip), %rdi
+    call _myPrintf
+    
+    # |---------------------------------------------|
+    # |             VALORES MÁXIMOS                 |
     # |---------------------------------------------|
     
     # Imprime cabeçalho dos valores máximos
     leaq max_header(%rip), %rdi
-    call _printf
+    call _myPrintf
     
     # Teste MAX 1: Char MAX (127)
     leaq format_char_max(%rip), %rdi
     movb test_char_max(%rip), %sil                      # Carrega char máximo como segundo argumento
     movb test_char_max(%rip), %dl                       # Carrega valor numérico para mostrar (sign extended)
     movsbq %dl, %rdx                                    # Sign extend byte to quad word
-    call _printf
+    call _myPrintf
     
     # Teste MAX 2: Short MAX (32767)
     leaq format_short_max(%rip), %rdi
     movswq test_short_max(%rip), %rsi                   # Carrega short máximo
-    call _printf
+    call _myPrintf
     
     # Teste MAX 3: Int MAX (2147483647)
     leaq format_int_max(%rip), %rdi
     movslq test_int_max(%rip), %rsi                     # Carrega int máximo
-    call _printf
+    call _myPrintf
     
     # Teste MAX 4: Long MAX (9223372036854775807)
     leaq format_long_max(%rip), %rdi
     movq test_long_max(%rip), %rsi                      # Carrega long máximo
-    call _printf
+    call _myPrintf
     
     # Teste MAX 5: Float MAX (3.4028235e+38)
     leaq format_float_max(%rip), %rdi
     movss test_float_max(%rip), %xmm0                   # Carrega float máximo em XMM0
     movl test_float_max(%rip), %esi                     # Também carrega como argumento inteiro
-    call _printf
+    call _myPrintf
     
     # Teste MAX 6: Double MAX (1.7976931348623157e+308)
     leaq format_double_max(%rip), %rdi
     movsd test_double_max(%rip), %xmm0                  # Carrega double máximo em XMM0
     movq test_double_max(%rip), %rsi                    # Também carrega como argumento inteiro
-    call _printf
+    call _myPrintf
     
     # |---------------------------------------------|
     # |             VALORES MÍNIMOS                |
@@ -3258,41 +4038,41 @@ _test_printf_all_types:
     
     # Imprime cabeçalho dos valores mínimos
     leaq min_header(%rip), %rdi
-    call _printf
+    call _myPrintf
     
     # Teste MIN 1: Char MIN (-128)
     leaq format_char_min(%rip), %rdi
     movb test_char_min(%rip), %sil                      # Carrega char mínimo como segundo argumento
     movb test_char_min(%rip), %dl                       # Carrega valor numérico para mostrar (sign extended)
     movsbq %dl, %rdx                                    # Sign extend byte to quad word
-    call _printf
+    call _myPrintf
     
     # Teste MIN 2: Short MIN (-32768)
     leaq format_short_min(%rip), %rdi
     movswq test_short_min(%rip), %rsi                   # Carrega short mínimo
-    call _printf
+    call _myPrintf
     
     # Teste MIN 3: Int MIN (-2147483648)
     leaq format_int_min(%rip), %rdi
     movslq test_int_min(%rip), %rsi                     # Carrega int mínimo
-    call _printf
+    call _myPrintf
     
     # Teste MIN 4: Long MIN (-9223372036854775808)
     leaq format_long_min(%rip), %rdi
     movq test_long_min(%rip), %rsi                      # Carrega long mínimo
-    call _printf
+    call _myPrintf
     
     # Teste MIN 5: Float MIN (-3.4028235e+38)
     leaq format_float_min(%rip), %rdi
     movss test_float_min(%rip), %xmm0                   # Carrega float mínimo em XMM0
     movl test_float_min(%rip), %esi                     # Também carrega como argumento inteiro
-    call _printf
+    call _myPrintf
     
     # Teste MIN 6: Double MIN (-1.7976931348623157e+308)
     leaq format_double_min(%rip), %rdi
     movsd test_double_min(%rip), %xmm0                  # Carrega double mínimo em XMM0
     movq test_double_min(%rip), %rsi                    # Também carrega como argumento inteiro
-    call _printf
+    call _myPrintf
 
     # |---------------------------------------------|
     # |         TESTE ÚNICO COM UMA CHAMADA         |
@@ -3343,262 +4123,92 @@ _test_printf_all_types:
     movsd test_double_max(%rip), %xmm3                   # Double MAX em XMM3
 
     # Chama printf com todos os argumentos
-    call _printf
+    call _myPrintf
     
     # Limpa a stack (8 pushes * 8 bytes = 64 bytes)
-    addq $64, %rsp
-    
-    popq %rbp
-    ret
-
-# ######################################################################################################
-# FUNÇÃO PRINCIPAL - MAIN
-# ######################################################################################################
-
-# Função principal para testar as implementações
-_main:
-    pushq %rbp
-    movq %rsp, %rbp
-
-    # |---------------------------------------------|
-    # |             _FPRINTF / TESTE                |
-    # |---------------------------------------------|
-    /*
-    pushq %r12  # para salvar FILE*
-    
-    # Imprimir cabeçalho
-    leaq fprintf_test_header(%rip), %rdi
-    call _printf
-    
-    # Abrir arquivo para escrita
-    leaq fprintf_test_filename(%rip), %rdi  # "fprintf_test.txt"
-    leaq fopen_mode_write(%rip), %rsi       # "w"
-    call _fopen
-    movq %rax, %r12                         # salva FILE* em %r12
-    
-    # Verificar se arquivo foi aberto
-    testq %r12, %r12
-    jz main_fprintf_error
-    
-    # Teste 1: Char (%c)
-    movq %r12, %rdi                         # FILE*
-    leaq format_test_char(%rip), %rsi       # "Char: %c\n"
-    movq $'A', %rdx                         # char 'A'
-    call _fprintf
-    
-    pushq %rax
-    leaq fprintf_test_success(%rip), %rdi
-    popq %rsi
-    call _printf
-    
-    # FECHAR e REABRIR para próxima escrita
-    movq %r12, %rdi
-    call _fclose
-    leaq fprintf_test_filename(%rip), %rdi
-    leaq fopen_mode_append(%rip), %rsi
-    call _fopen
-    movq %rax, %r12
-    
-    # Teste 2: Short (%hd)
-    movq %r12, %rdi                         # FILE*
-    leaq format_test_short(%rip), %rsi      # "Short: %hd\n"
-    movq $-32768, %rdx                      # short mínimo
-    call _fprintf
-    
-    pushq %rax
-    leaq fprintf_test_success(%rip), %rdi
-    popq %rsi
-    call _printf
-    
-    # FECHAR e REABRIR para próxima escrita
-    movq %r12, %rdi
-    call _fclose
-    leaq fprintf_test_filename(%rip), %rdi
-    leaq fopen_mode_append(%rip), %rsi
-    call _fopen
-    movq %rax, %r12
-    
-    # Teste 3: Int (%d)
-    movq %r12, %rdi                         # FILE*
-    leaq format_test_int(%rip), %rsi        # "Int: %d\n"
-    movq $2147483647, %rdx                  # int máximo
-    call _fprintf
-    
-    pushq %rax
-    leaq fprintf_test_success(%rip), %rdi
-    popq %rsi
-    call _printf
-    
-    # FECHAR e REABRIR para próxima escrita
-    movq %r12, %rdi
-    call _fclose
-    leaq fprintf_test_filename(%rip), %rdi
-    leaq fopen_mode_append(%rip), %rsi
-    call _fopen
-    movq %rax, %r12
-    
-    # Teste 4: Long (%ld)
-    movq %r12, %rdi                         # FILE*
-    leaq format_test_long(%rip), %rsi       # "Long: %ld\n"
-    movq $9223372036854775807, %rdx         # long máximo
-    call _fprintf
-    
-    pushq %rax
-    leaq fprintf_test_success(%rip), %rdi
-    popq %rsi
-    call _printf
-    
-    # FECHAR e REABRIR para próxima escrita
-    movq %r12, %rdi
-    call _fclose
-    leaq fprintf_test_filename(%rip), %rdi
-    leaq fopen_mode_append(%rip), %rsi
-    call _fopen
-    movq %rax, %r12
-    
-    # Teste 5: Float (%f)
-    movq %r12, %rdi                         # FILE*
-    leaq format_test_float(%rip), %rsi      # "Float: %f\n"
-    # Carregar float como bits em %rdx
-    movl test_float_max(%rip), %edx         # carrega float como 32 bits
-    call _fprintf
-    
-    pushq %rax
-    leaq fprintf_test_success(%rip), %rdi
-    popq %rsi
-    call _printf
-    
-    # FECHAR e REABRIR para próxima escrita
-    movq %r12, %rdi
-    call _fclose
-    leaq fprintf_test_filename(%rip), %rdi
-    leaq fopen_mode_append(%rip), %rsi
-    call _fopen
-    movq %rax, %r12
-    
-    # Teste 6: Double (%lf)
-    movq %r12, %rdi                         # FILE*
-    leaq format_test_double(%rip), %rsi     # "Double: %lf\n"
-    # Carregar double como bits em %rdx
-    movq test_double_max(%rip), %rdx        # carrega double como 64 bits
-    call _fprintf
-    
-    pushq %rax
-    leaq fprintf_test_success(%rip), %rdi
-    popq %rsi
-    call _printf
-    
-    # Fechar arquivo final
-    movq %r12, %rdi
-    call _fclose
-    
-    jmp main_continue
-    
-    main_fprintf_error:
-        leaq fprintf_test_error(%rip), %rdi
-        call _printf
-    
-    main_continue:
-        # Terminar programa
-        movq $SYS_EXIT, %rax
-        movq $0, %rdi
-        syscall
-    *?
-    
-    # |---------------------------------------------|
-    # |               _FOPEN - TESTE                |
-    # |---------------------------------------------|
-    # call _test_fopen_fclose
-    
-    # |---------------------------------------------|
-    # |               _PRINTF - TESTE               |
-    # |---------------------------------------------|
-    # call _test_printf_all_types
+    addq $64, %rsp*/
     
     # |---------------------------------------------|
     # |               _SCANF - TESTE                |
     # |---------------------------------------------|
 
-    # leaq scanf_test_header(%rip), %rdi
-    # call _printf
+    /*leaq scanf_test_header(%rip), %rdi
+    call _myPrintf
 
     # Teste 1: lendo cada tipo um por vez (vários scanfs)
 
     # echo -e "a\n-32767\n2147483647\n-9223372036854775807\n-999999.999999\n-123456789.123456789" | ./lib_c
     # echo -e "Z\n32767\n2147483647\n9223372036854775807\n123456789.123456\n123456789012345.123456789" | ./lib_c
-
     
     # Teste para ler um char
-    /*leaq scanf_char_prompt(%rip), %rdi
-    call _printf
+    leaq scanf_char_prompt(%rip), %rdi
+    call _myPrintf
     leaq scanf_char_format(%rip), %rdi
     leaq char_input(%rip), %rsi
-    call _scanf
+    call _myScanf
     leaq scanf_char_result(%rip), %rdi
     movzbq char_input(%rip), %rsi
     movzbq char_input(%rip), %rdx
-    call _printf
+    call _myPrintf
 
     # Teste para ler um short
     leaq scanf_short_prompt(%rip), %rdi
-    call _printf
+    call _myPrintf
     leaq scanf_short_format(%rip), %rdi
     leaq short_input(%rip), %rsi
-    call _scanf
+    call _myScanf
     leaq scanf_short_result(%rip), %rdi
     movswq short_input(%rip), %rsi
-    call _printf
+    call _myPrintf
 
     # Teste para ler um int
     leaq scanf_int_prompt(%rip), %rdi
-    call _printf
+    call _myPrintf
     leaq scanf_int_format(%rip), %rdi
     leaq int_input(%rip), %rsi
-    call _scanf
+    call _myScanf
     leaq scanf_int_result(%rip), %rdi
     movslq int_input(%rip), %rsi
-    call _printf
+    call _myPrintf
 
     # Teste para ler um long
     leaq scanf_long_prompt(%rip), %rdi
-    call _printf
+    call _myPrintf
     leaq scanf_long_format(%rip), %rdi
     leaq long_input(%rip), %rsi
-    call _scanf
+    call _myScanf
     leaq scanf_long_result(%rip), %rdi
     movq long_input(%rip), %rsi
-    call _printf
+    call _myPrintf
 
     # Teste para ler um float
     leaq scanf_float_prompt(%rip), %rdi
-    call _printf
+    call _myPrintf
     leaq scanf_float_format(%rip), %rdi
     leaq float_input(%rip), %rsi
-    call _scanf
+    call _myScanf
     leaq scanf_float_result(%rip), %rdi
     movss float_input(%rip), %xmm0
     movl float_input(%rip), %esi
-    call _printf
+    call _myPrintf
 
     # Teste para ler um double
     leaq scanf_double_prompt(%rip), %rdi
-    call _printf
+    call _myPrintf
     leaq scanf_double_format(%rip), %rdi
     leaq double_input(%rip), %rsi
-    call _scanf
+    call _myScanf
     leaq scanf_double_result(%rip), %rdi
     movsd double_input(%rip), %xmm0
     movq double_input(%rip), %rsi
-    call _printf
-    */
-
-    # Teste escalável: demonstração com 12 valores (mínimos e máximos para cada tipo)    
+    call _myPrintf*/
     
+    # Teste escalável: demonstração com 12 valores (mínimos e máximos para cada tipo)    
     # echo "B -32768 -2147483648 -9223372036854775808 -123456.123456 -123456789012345.123456789012345 Y 32767 2147483647 9223372036854775807 123456.123456 123456789012345.123456789012345" | ./lib_c
 
     # Prompt para entrada dos 12 valores
     /*leaq scanf_12_prompt(%rip), %rdi
-    call _printf
+    call _myPrintf
     
     # Scanf com 12 valores: %c %hd %d %ld %f %lf %c %hd %d %ld %f %lf
     leaq scanf_12_format(%rip), %rdi         # Formato dos 12 valores
@@ -3625,7 +4235,7 @@ _main:
     leaq double_input3(%rip), %rax           # 6. Double MIN
     pushq %rax
     
-    call _scanf
+    call _myScanf
     
     # Limpa a stack (7 pushes * 8 bytes = 56 bytes + padding)
     addq $64, %rsp
@@ -3667,14 +4277,13 @@ _main:
     movss float_input4(%rip), %xmm2          # Float MAX
     movsd double_input4(%rip), %xmm3         # Double MAX
     
-    call _printf
+    call _myPrintf
     
     # Limpa a stack (9 pushes * 8 bytes = 72 bytes + padding)
-    addq $80, %rsp
-    */
-
-    popq %rbp
+    addq $80, %rsp*/
     
+
     # Saída normal do programa usando return (não syscall direto)
+    popq %rbp
     movq $0, %rax                                       # código de retorno 0
     ret                                                 # retorna para o sistema
